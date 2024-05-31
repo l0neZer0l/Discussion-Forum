@@ -13,30 +13,30 @@ async function sendRegistrationEmail(user) {
 	const transporter = nodemailer.createTransport({
 		service: 'gmail',
 		auth: {
-			user: 'essthsforum@gmail.com', // Using user's email as sender
-			pass: 'Essthsforum2006?', // your password
+			user: 'essthsforum@gmail.com',
+			pass: 'Essthsforum2006?',
 		},
 	})
 
 	const mailOptions = {
-		from: 'essthsforum@gmail.com', // Using user's email as sender
-		to: 'adembensalem8@gmail.com', // receiver address (admin email)
+		from: 'essthsforum@gmail.com',
+		to: 'adembensalem8@gmail.com',
 		subject: 'New User Registration',
 		html: `
-          <h2>Registration Confirmation</h2>
-          <p>Hello Admin,</p>
-          <p>A new user has registered with the following details:</p>
-          <ul>
-            <li><strong>Name:</strong> ${user.name}</li>
-            <li><strong>Email:</strong> ${user.email}</li>
-            <li><strong>Username:</strong> ${user.username}</li>
-            <li><strong>Role:</strong> ${user.role}</li>
-            <li><strong>CIN Number:</strong> ${user.cinNumber}</li>
-          </ul>
-          <p>Please take necessary action to confirm the user's registration.</p>
-          <p>Regards,</p>
-          <p>Your Website Team</p>
-        `,
+      <h2>Registration Confirmation</h2>
+      <p>Hello Admin,</p>
+      <p>A new user has registered with the following details:</p>
+      <ul>
+        <li><strong>Name:</strong> ${user.name}</li>
+        <li><strong>Email:</strong> ${user.email}</li>
+        <li><strong>Username:</strong> ${user.username}</li>
+        <li><strong>Role:</strong> ${user.role}</li>
+        <li><strong>CIN Number:</strong> ${user.cinNumber}</li>
+      </ul>
+      <p>Please take necessary action to confirm the user's registration.</p>
+      <p>Regards,</p>
+      <p>Your Website Team</p>
+    `,
 	}
 
 	try {
@@ -53,9 +53,7 @@ router.put('/:id/role', async (req, res) => {
 	const { role } = req.body
 
 	try {
-		// Find the user by ID and update their role
 		let user = await User.findById(id)
-
 		if (!user) {
 			return res.status(404).send('User not found')
 		}
@@ -82,10 +80,9 @@ router.post('/register', async (req, res) => {
 	let user = await User.findOne({ email: req.body.email })
 	if (user) return res.status(400).send('User already registered')
 
-	// Set the default role based on isAdmin flag
-	let defaultRole = 'guest' // Default role for non-admin users
+	let defaultRole = 'guest'
 	if (req.body.isAdmin) {
-		defaultRole = 'admin' // Set as admin if isAdmin is true
+		defaultRole = 'admin'
 	}
 
 	user = new User({
@@ -93,13 +90,12 @@ router.post('/register', async (req, res) => {
 		email: req.body.email,
 		username: req.body.username,
 		password: await bcrypt.hash(req.body.password, 10),
-		role: defaultRole, // Set initial role based on isAdmin value
+		role: defaultRole,
 		cinNumber: req.body.cinNumber,
 	})
 
 	try {
 		await user.save()
-		// Send registration confirmation email to admin
 		sendRegistrationEmail(user)
 		res.send('Registration successful. Please wait for admin confirmation.')
 	} catch (err) {
@@ -111,39 +107,41 @@ router.post('/register', async (req, res) => {
 // GET endpoint to get a user by ID
 router.get('/:id', async (req, res) => {
 	const user = await User.findById(req.params.id).select('-password')
-	if (!user) return res.send("This user doesn't exist in the database!")
+	if (!user)
+		return res.status(404).send("This user doesn't exist in the database!")
 	res.send(user)
 })
 
 // GET endpoint to get current user profile
 router.get('/me', auth, async (req, res) => {
 	const user = await User.findById(req.user._id).select('-password')
-	if (!user) return res.send("This user doesn't exist in the database!")
+	if (!user)
+		return res.status(404).send("This user doesn't exist in the database!")
 	res.send(user)
 })
 
 // POST endpoint for user login
 router.post('/login', async (req, res) => {
-	const { error } = validateUser(req.body)
-	if (error) return res.status(400).send(error.details[0].message)
+	const { email, password } = req.body
 
-	if (req.user) return res.send('User already logged in!')
-	let user = await User.findOne({ email: req.body.email })
+	if (!email || !password)
+		return res.status(400).send('Email and password are required')
+
+	let user = await User.findOne({ email })
 	if (!user) return res.status(400).send('Invalid email or password')
 
-	const validpassword = await bcrypt.compare(req.body.password, user.password)
-	if (!validpassword) return res.status(400).send('Invalid email or password')
+	const validPassword = await bcrypt.compare(password, user.password)
+	if (!validPassword) return res.status(400).send('Invalid email or password')
 
 	const token = jwt.sign(
 		{ _id: user._id, role: user.role },
 		config.get('jwtPrivateKey'),
 	)
-	res.header('x-auth-token').send(token)
+	res.header('x-auth-token', token).send({ token })
 })
 
 // POST endpoint for user logout
-router.post('/logout', async (req, res) => {
-	// Perform logout actions here
+router.post('/logout', (req, res) => {
 	res.send('Logged out successfully')
 })
 

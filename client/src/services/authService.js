@@ -1,18 +1,23 @@
 import http from './httpService'
 import { api } from '../config.js'
 
-export function login(email, password) {
-	return http
-		.post(api.usersEndPoint + 'login', {
-			email: email,
-			password: password,
+export async function login(email, password) {
+	try {
+		const response = await http.post(api.usersEndPoint + 'login', {
+			email,
+			password,
 		})
-		.then((response) => {
-			console.log('Login Response:', response) // Add this line to log the response
-			return response
-		})
-		.catch((error) => {
-			console.error('Login Error:', error)
-			throw error // Ensure the error is thrown to the caller
-		})
+
+		const { token } = response.data
+		if (typeof token === 'string') {
+			localStorage.setItem('token', token)
+		} else {
+			console.error('Invalid token format:', token)
+			throw new Error('Invalid token format')
+		}
+		return response
+	} catch (error) {
+		console.error('Login Error:', error)
+		throw error
+	}
 }

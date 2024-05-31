@@ -17,28 +17,21 @@ import EditPost from './components/EditPost'
 import AdminPage from './components/AdminPage'
 
 class App extends Component {
-	state = {}
+	state = {
+		user: null,
+	}
 
 	async componentDidMount() {
-		try {
-			const jwt = localStorage.getItem('token')
-			console.log('JWT token:', jwt)
-
-			if (jwt) {
+		const jwt = localStorage.getItem('token')
+		if (jwt) {
+			try {
 				const user_jwt = jwtDecode(jwt)
-				console.log('Decoded JWT:', user_jwt)
-
-				const userResponse = await http.get(
-					`${api.usersEndPoint}/${user_jwt._id}`,
-				)
-				console.log('User data response:', userResponse)
-
-				const user = userResponse.data
+				const response = await http.get(`${api.usersEndPoint}/${user_jwt._id}`)
+				const user = response.data
 				this.setState({ user })
-				console.log('User object:', user)
+			} catch (ex) {
+				console.error('Error fetching user data:', ex)
 			}
-		} catch (ex) {
-			console.error('Error fetching user data:', ex)
 		}
 	}
 

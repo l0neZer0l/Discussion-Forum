@@ -1,3 +1,4 @@
+// log.jsx
 import React from "react";
 import { Link, Redirect } from "react-router-dom";
 import Joi from "joi-browser";
