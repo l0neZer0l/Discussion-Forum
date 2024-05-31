@@ -7,30 +7,25 @@ import Input from "../components/common/input";
 import Form from "./common/form";
 import { login } from "../services/authService";
 
-// use programmatic navigation form login form to dashboard
-
-// add functionality to show react toast if the user is redierected to different locations due to history
 class Log extends Form {
   state = {
     data: { email: "", password: "" },
-    errors: {
-      email: "",
-      passowrd: "",
-    },
+    errors: {},
   };
+
   schema = {
     email: Joi.string().required().label("Email ID"),
     password: Joi.string().required().label("Password"),
   };
+
   doSubmit = async () => {
-    // call the server;
     try {
       const { data } = this.state;
-      //console.log(data.email);
       const { data: jwt } = await login(data.email, data.password);
+      console.log("JWT Token:", jwt); // Add this line to log the token
       localStorage.setItem("token", jwt);
-      const { state } = this.props.location;
-      window.location = state ? state.from.pathname : "/users/login";
+      console.log("Token Stored in Local Storage:", localStorage.getItem("token")); // Add this line to log the token after storing
+      window.location = "/dashboard"; // Redirect to dashboard after successful login
     } catch (ex) {
       if (ex.response && ex.response.status === 400) {
         toast.error("Invalid Email Or Password");
@@ -41,7 +36,6 @@ class Log extends Form {
     if (localStorage.getItem("token")) {
       return <Redirect to="/dashboard" />;
     }
-    const { data, errors } = this.state;
     return (
       <div>
         <div className="container col-lg-3 col-md-6 border rounded mt-3">
@@ -50,17 +44,15 @@ class Log extends Form {
           <form onSubmit={this.handleSubmit}>
             <Input
               name="email"
-              value={data.email}
               label="Email ID"
               onChange={this.handleChange}
-              error={errors.email}
+              error={this.state.errors.email}
             />
             <Input
               name="password"
-              value={data.password}
               label="Password"
               onChange={this.handleChange}
-              error={errors.password}
+              error={this.state.errors.password}
               type="password"
             />
             <div className="text-center">

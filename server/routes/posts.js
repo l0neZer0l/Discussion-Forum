@@ -1,76 +1,77 @@
-const express = require("express");
-const router = express.Router();
-const _ = require("lodash");
-const { Post, validatePost } = require("../models/post");
-const { Reply, validateReply } = require("../models/replies");
-const { User } = require("../models/user");
-const auth = require("../middleware/auth");
-const { Tag } = require("../models/tag");
+const express = require('express')
+const router = express.Router()
+const { Post, validatePost } = require('../models/post')
+const { Tag } = require('../models/tag')
 
-router.get("/", async (req, res) => {
-  let all_posts = await Post.find().populate("author", "name -_id");
-  res.send(all_posts);
-});
+// Get all posts
+router.get('/', async (req, res) => {
+	const posts = await Post.find().sort('name')
+	res.send(posts)
+})
 
-router.get("/:id", async (req, res) => {
-  try {
-    const post = await Post.find({ _id: req.params.id }).populate(
-      "author",
-      "name username"
-    );
-    const views = post[0].views;
-    post[0].views = views + 1;
-    const result = await post[0].save();
-    res.send(post[0]);
-  } catch (ex) {
-    return res.send(ex.message);
-  }
-});
+// Get a single post by ID
+router.get('/:id', async (req, res) => {
+	const post = await Post.findById(req.params.id)
+	if (!post)
+		return res.status(404).send('The post with the given ID was not found.')
+	res.send(post)
+})
 
-router.post("/create", auth, async (req, res) => {
-  const { error } = validatePost(req.body);
-  if (error) return res.status(400).send(error.details[0].message);
-  const tags = req.body.tags;
-  const tags_array = [];
-  for (let i = 0; i < tags.length; i++) {
-    const tag_in_db = await Tag.findById(tags[i]);
-    if (!tag_in_db) return res.status(400).send("Invalid Tag");
-    tags_array.push(tag_in_db);
-  }
-  const post = new Post({
-    title: req.body.title,
-    tags: tags_array,
-    description: req.body.description,
-    author: req.user._id,
-    views: 1,
-  });
-  try {
-    await post.save();
-    res.send("Post succesfully created.");
-  } catch (err) {
-    console.log("error: ", err);
-  }
-});
+// Create a new post
+router.post('/', async (req, res) => {
+	const { error } = validatePost(req.body)
+	if (error) return res.status(400).send(error.details[0].message)
 
-router.put("/like/:id", auth, async (req, res) => {
-  const post = await Post.findById(req.params.id);
-  if (!post) return res.status(400).send("Post doesn't exists");
-  if (post.author == req.user._id)
-    return res.status(400).send("You can't upvote your own post");
-  const upvoteArray = post.upvotes;
-  const index = upvoteArray.indexOf(req.user._id);
-  if (index === -1) {
-    upvoteArray.push(req.user._id);
-  } else {
-    upvoteArray.splice(index, 1);
-  }
-  post.upvotes = upvoteArray;
-  const result = await post.save();
-  const post_new = await Post.find({ _id: post._id }).populate(
-    "author",
-    "name username"
-  );
-  res.send(post_new);
-});
+	const tags = await Tag.find({
+		_id: { $in: req.body.tags.map((tag) => tag._id) },
+	})
+	if (tags.length !== req.body.tags.length)
+		return res.status(400).send('Invalid tags.')
 
-module.exports = router;
+	let post = new Post({
+		title: req.body.title,
+		description: req.body.description,
+		tags: req.body.tags,
+		author: req.body.author, // assuming author is passed in req.body
+	})
+
+	post = await post.save()
+	res.send(post)
+})
+
+// Update an existing post
+router.put('/:id', async (req, res) => {
+	const { error } = validatePost(req.body)
+	if (error) return res.status(400).send(error.details[0].message)
+
+	const tags = await Tag.find({
+		_id: { $in: req.body.tags.map((tag) => tag._id) },
+	})
+	if (tags.length !== req.body.tags.length)
+		return res.status(400).send('Invalid tags.')
+
+	const post = await Post.findByIdAndUpdate(
+		req.params.id,
+		{
+			title: req.body.title,
+			description: req.body.description,
+			tags: req.body.tags,
+		},
+		{ new: true },
+	)
+
+	if (!post)
+		return res.status(404).send('The post with the given ID was not found.')
+
+	res.send(post)
+})
+
+// Delete a post
+router.delete('/:id', async (req, res) => {
+	const post = await Post.findByIdAndRemove(req.params.id)
+	if (!post)
+		return res.status(404).send('The post with the given ID was not found.')
+	res.send(post)
+})
+
+module.exports = router

@@ -16,12 +16,13 @@ class Dashboard extends Component {
     tags: [],
     selectedTag: { _id: "1", name: "All Posts" },
   };
+
   async componentDidMount() {
     const { data: allposts } = await http.get(api.postsEndPoint);
     const { data: tags } = await http.get(api.tagsEndPoint);
 
     this.setState({
-      allposts: [...allposts],
+      allposts: allposts.filter((post) => post !== null), // Ensure no null posts
       tags: [
         {
           _id: "1",
@@ -31,13 +32,21 @@ class Dashboard extends Component {
       ],
     });
   }
+
   handlePageChange = (page) => {
     this.setState({ currentPage: page });
   };
-  handlePostDelete = (post) => {};
+
+  handlePostDelete = async (postId) => {
+    await http.delete(`${api.postsEndPoint}/${postId}`);
+    const { data: allposts } = await http.get(api.postsEndPoint);
+    this.setState({ allposts: allposts.filter((post) => post !== null) });
+  };
+
   handleTagSelect = (tag) => {
     this.setState({ selectedTag: tag, currentPage: 1 });
   };
+
   getPosts() {
     const { allposts, selectedTag } = this.state;
     const filtered = [];
@@ -51,16 +60,15 @@ class Dashboard extends Component {
         }
       }
     }
-    console.log(filtered);
     return filtered;
   }
+
   render() {
     const { user } = this.props;
     const { allposts, pageSize, currentPage, tags, selectedTag } = this.state;
     const filtered = selectedTag._id === "1" ? allposts : this.getPosts();
     const posts = paginate(filtered, currentPage, pageSize);
-    if (allposts.length === 0)
-      return <p>There are no posts in the database!</p>;
+
     return (
       <React.Fragment>
         <Jumotron />
@@ -71,13 +79,7 @@ class Dashboard extends Component {
                 Showing {filtered.length} posts.
                 {user && (
                   <Link to="/new-post">
-                    <button
-                      type="button"
-                      class="btn btn-success"
-                      style={{ marginBottom: 20 }}
-                    >
-                      New Post
-                    </button>
+                    <button className="btn btn-success">New Post</button>
                   </Link>
                 )}
               </div>

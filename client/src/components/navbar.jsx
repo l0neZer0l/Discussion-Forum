@@ -1,14 +1,16 @@
-import React from "react";
-import { NavLink } from "react-router-dom";
+import React from 'react';
+import { NavLink } from 'react-router-dom';
 
 const NavBar = ({ user }) => {
+  console.log('User object:', user);
+
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-dark  sticky-top ">
+    <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
       <NavLink className="navbar-brand" to="/">
         Community
       </NavLink>
       <button
-        class="navbar-toggler"
+        className="navbar-toggler"
         type="button"
         data-toggle="collapse"
         data-target="#navbarSupportedContent"
@@ -16,10 +18,10 @@ const NavBar = ({ user }) => {
         aria-expanded="false"
         aria-label="Toggle navigation"
       >
-        <span class="navbar-toggler-icon"></span>
+        <span className="navbar-toggler-icon"></span>
       </button>
 
-      <div className="collapse navbar-collapse row" id="navbarColor03">
+      <div className="collapse navbar-collapse" id="navbarSupportedContent">
         <ul className="navbar-nav mr-auto">
           <li className="nav-item active">
             <NavLink className="nav-link ml-3" to="/">
@@ -49,6 +51,13 @@ const NavBar = ({ user }) => {
           )}
           {user && (
             <React.Fragment>
+              {user.role === 'admin' && (
+                <li className="nav-item">
+                  <NavLink className="nav-link" to="/admin">
+                    Admin
+                  </NavLink>
+                </li>
+              )}
               <li className="nav-item">
                 <NavLink className="nav-link" to="/me">
                   Hi {user.username}
