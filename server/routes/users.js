@@ -1,10 +1,8 @@
 const express = require('express')
-const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
-const config = require('config')
 const { User, validateUser } = require('../models/user')
-const auth = require('../middleware/auth')
 const nodemailer = require('nodemailer')
+const auth = require('../middleware/auth')
 
 const router = express.Router()
 
@@ -23,20 +21,20 @@ async function sendRegistrationEmail(user) {
 		to: 'adembensalem8@gmail.com',
 		subject: 'New User Registration',
 		html: `
-      <h2>Registration Confirmation</h2>
-      <p>Hello Admin,</p>
-      <p>A new user has registered with the following details:</p>
-      <ul>
-        <li><strong>Name:</strong> ${user.name}</li>
-        <li><strong>Email:</strong> ${user.email}</li>
-        <li><strong>Username:</strong> ${user.username}</li>
-        <li><strong>Role:</strong> ${user.role}</li>
-        <li><strong>CIN Number:</strong> ${user.cinNumber}</li>
-      </ul>
-      <p>Please take necessary action to confirm the user's registration.</p>
-      <p>Regards,</p>
-      <p>Your Website Team</p>
-    `,
+            <h2>Registration Confirmation</h2>
+            <p>Hello Admin,</p>
+            <p>A new user has registered with the following details:</p>
+            <ul>
+                <li><strong>Name:</strong> ${user.name}</li>
+                <li><strong>Email:</strong> ${user.email}</li>
+                <li><strong>Username:</strong> ${user.username}</li>
+                <li><strong>Role:</strong> ${user.role}</li>
+                <li><strong>CIN Number:</strong> ${user.cinNumber}</li>
+            </ul>
+            <p>Please take necessary action to confirm the user's registration.</p>
+            <p>Regards,</p>
+            <p>Your Website Team</p>
+        `,
 	}
 
 	try {
@@ -99,7 +97,7 @@ router.post('/register', async (req, res) => {
 		sendRegistrationEmail(user)
 		res.send('Registration successful. Please wait for admin confirmation.')
 	} catch (err) {
-		console.log('error: ', err)
+		console.error('Error registering user:', err)
 		res.status(500).send('Internal server error')
 	}
 })
@@ -114,7 +112,7 @@ router.get('/:id', async (req, res) => {
 
 // GET endpoint to get current user profile
 router.get('/me', auth, async (req, res) => {
-	const user = await User.findById(req.user._id).select('-password')
+	const user = await User.findById(req.session.userId).select('-password')
 	if (!user)
 		return res.status(404).send("This user doesn't exist in the database!")
 	res.send(user)
@@ -133,16 +131,22 @@ router.post('/login', async (req, res) => {
 	const validPassword = await bcrypt.compare(password, user.password)
 	if (!validPassword) return res.status(400).send('Invalid email or password')
 
-	const token = jwt.sign(
-		{ _id: user._id, role: user.role },
-		config.get('jwtPrivateKey'),
-	)
-	res.header('x-auth-token', token).send({ token })
+	// Set user's session upon successful login
+	req.session.userId = user._id
+
+	res.send('Login successful')
 })
 
 // POST endpoint for user logout
 router.post('/logout', (req, res) => {
-	res.send('Logged out successfully')
+	// Destroy the user's session upon logout
+	req.session.destroy((err) => {
+		if (err) {
+			console.error('Error destroying session:', err)
+			return res.status(500).send('Internal server error')
+		}
+		res.send('Logged out successfully')
+	})
 })
 
 module.exports = router

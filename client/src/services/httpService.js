@@ -3,32 +3,25 @@ import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
 // Create a new axios instance
-const http = axios.create()
-
-// Add a request interceptor to set the x-auth-token header
-http.interceptors.request.use((config) => {
-	const token = localStorage.getItem('token')
-	if (typeof token === 'string') {
-		config.headers['x-auth-token'] = token
-	} else {
-		console.error('Invalid token format:', token)
-		throw new Error('Invalid token format')
-	}
-	return config
+const http = axios.create({
+	withCredentials: true, // Include credentials (cookies) with requests
 })
 
 // Add a response interceptor for handling unexpected errors
 http.interceptors.response.use(null, (error) => {
-	const expectedError =
+	if (
+		error &&
 		error.response &&
 		error.response.status >= 400 &&
 		error.response.status < 500
-
-	if (!expectedError) {
+	) {
+		// Handle expected errors
 		toast('An unexpected error occurred!')
+	} else if (error) {
+		// Handle unexpected errors
+		toast('An unexpected error occurred!')
+		console.error('Unexpected error:', error)
 	}
-	console.log(error.response.status)
-	console.log(error)
 	return Promise.reject(error)
 })
 

@@ -1,5 +1,6 @@
+// App.js
+
 import React, { Component } from 'react'
-import jwtDecode from 'jwt-decode'
 import { Route, Switch, Redirect } from 'react-router-dom'
 import http from './services/httpService'
 import { api } from './config.js'
@@ -22,16 +23,12 @@ class App extends Component {
 	}
 
 	async componentDidMount() {
-		const jwt = localStorage.getItem('token')
-		if (jwt) {
-			try {
-				const user_jwt = jwtDecode(jwt)
-				const response = await http.get(`${api.usersEndPoint}/${user_jwt._id}`)
-				const user = response.data
-				this.setState({ user })
-			} catch (ex) {
-				console.error('Error fetching user data:', ex)
-			}
+		try {
+			const response = await http.get(`${api.usersEndPoint}/me`)
+			const user = response.data
+			this.setState({ user })
+		} catch (ex) {
+			console.error('Error fetching user data:', ex)
 		}
 	}
 
@@ -51,10 +48,12 @@ class App extends Component {
 					<ProtectedRoute
 						path='/new-post'
 						render={(props) => <NewPost {...props} user={this.state.user} />}
+						user={this.state.user}
 					/>
 					<ProtectedRoute
 						path='/edit-post/:id'
 						render={(props) => <EditPost {...props} user={this.state.user} />}
+						user={this.state.user}
 					/>
 					<Route
 						path='/post/:id'

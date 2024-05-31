@@ -8,16 +8,17 @@ export async function login(email, password) {
 			password,
 		})
 
-		const { token } = response.data
-		if (typeof token === 'string') {
-			localStorage.setItem('token', token)
-		} else {
-			console.error('Invalid token format:', token)
-			throw new Error('Invalid token format')
-		}
 		return response
 	} catch (error) {
-		console.error('Login Error:', error)
+		throw error
+	}
+}
+
+export async function logout() {
+	try {
+		const response = await http.post(api.usersEndPoint + 'logout')
+		return response
+	} catch (error) {
 		throw error
 	}
 }

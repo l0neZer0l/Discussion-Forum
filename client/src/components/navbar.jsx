@@ -2,8 +2,6 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 
 const NavBar = ({ user }) => {
-  console.log('User object:', user);
-
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
       <NavLink className="navbar-brand" to="/">

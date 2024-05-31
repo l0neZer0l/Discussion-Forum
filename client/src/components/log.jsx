@@ -1,4 +1,3 @@
-// log.jsx
 import React from "react";
 import { Link, Redirect } from "react-router-dom";
 import Joi from "joi-browser";
@@ -22,10 +21,7 @@ class Log extends Form {
   doSubmit = async () => {
     try {
       const { data } = this.state;
-      const { data: jwt } = await login(data.email, data.password);
-      console.log("JWT Token:", jwt); // Add this line to log the token
-      localStorage.setItem("token", jwt);
-      console.log("Token Stored in Local Storage:", localStorage.getItem("token")); // Add this line to log the token after storing
+      await login(data.email, data.password); // Login function now handles storing token
       window.location = "/dashboard"; // Redirect to dashboard after successful login
     } catch (ex) {
       if (ex.response && ex.response.status === 400) {
@@ -33,10 +29,12 @@ class Log extends Form {
       }
     }
   };
+
   render() {
     if (localStorage.getItem("token")) {
       return <Redirect to="/dashboard" />;
     }
+
     return (
       <div>
         <div className="container col-lg-3 col-md-6 border rounded mt-3">
