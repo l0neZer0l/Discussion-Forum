@@ -10,7 +10,7 @@ import Jumotron from "./common/jumbotron";
 
 class Dashboard extends Component {
   state = {
-    allposts: [],
+    allPosts: [],
     currentPage: 1,
     pageSize: 4,
     tags: [],
@@ -18,11 +18,11 @@ class Dashboard extends Component {
   };
 
   async componentDidMount() {
-    const { data: allposts } = await http.get(api.postsEndPoint);
+    const { data: allPosts } = await http.get(api.postsEndPoint);
     const { data: tags } = await http.get(api.tagsEndPoint);
 
     this.setState({
-      allposts: allposts.filter((post) => post !== null), // Ensure no null posts
+      allPosts: allPosts.filter((post) => post !== null),
       tags: [
         {
           _id: "1",
@@ -39,35 +39,24 @@ class Dashboard extends Component {
 
   handlePostDelete = async (postId) => {
     await http.delete(`${api.postsEndPoint}/${postId}`);
-    const { data: allposts } = await http.get(api.postsEndPoint);
-    this.setState({ allposts: allposts.filter((post) => post !== null) });
+    const { data: allPosts } = await http.get(api.postsEndPoint);
+    this.setState({ allPosts: allPosts.filter((post) => post !== null) });
   };
 
   handleTagSelect = (tag) => {
     this.setState({ selectedTag: tag, currentPage: 1 });
   };
 
-  getPosts() {
-    const { allposts, selectedTag } = this.state;
-    const filtered = [];
-    for (let i in allposts) {
-      const post = allposts[i];
-      const { tags } = post;
-      for (let j in tags) {
-        if (tags[j].name === selectedTag.name) {
-          filtered.push(post);
-          break;
-        }
-      }
-    }
-    return filtered;
+  getFilteredPosts() {
+    const { allPosts, selectedTag } = this.state;
+    return selectedTag._id === "1" ? allPosts : allPosts.filter(post => post.tags.some(tag => tag.name === selectedTag.name));
   }
 
   render() {
     const { user } = this.props;
-    const { allposts, pageSize, currentPage, tags, selectedTag } = this.state;
-    const filtered = selectedTag._id === "1" ? allposts : this.getPosts();
-    const posts = paginate(filtered, currentPage, pageSize);
+    const { allPosts, pageSize, currentPage, tags, selectedTag } = this.state;
+    const filteredPosts = this.getFilteredPosts();
+    const paginatedPosts = paginate(filteredPosts, currentPage, pageSize);
 
     return (
       <React.Fragment>
@@ -76,7 +65,7 @@ class Dashboard extends Component {
           <div className="row">
             <div className="col">
               <div className="d-flex w-100 justify-content-between m-3">
-                Showing {filtered.length} posts.
+                Showing {filteredPosts.length} posts.
                 {user && (
                   <Link to="/new-post">
                     <button className="btn btn-success">New Post</button>
@@ -87,22 +76,22 @@ class Dashboard extends Component {
           </div>
           <div className="row">
             <div className="col-9">
-              <Posts posts={posts} onDelete={this.handlePostDelete} />
+              <Posts posts={paginatedPosts} onDelete={this.handlePostDelete} />
             </div>
             <div className="col-3">
               <ListGroup
                 items={tags}
-                selectedTag={this.state.selectedTag}
+                selectedTag={selectedTag}
                 onTagSelect={this.handleTagSelect}
               />
             </div>
-            <Pagination
-              itemCount={filtered.length}
-              pageSize={pageSize}
-              currentPage={currentPage}
-              onPageChange={this.handlePageChange}
-            />
           </div>
+          <Pagination
+            itemCount={filteredPosts.length}
+            pageSize={pageSize}
+            currentPage={currentPage}
+            onPageChange={this.handlePageChange}
+          />
         </div>
       </React.Fragment>
     );

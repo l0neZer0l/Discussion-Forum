@@ -7,7 +7,6 @@ export async function login(email, password) {
 			email,
 			password,
 		})
-
 		return response
 	} catch (error) {
 		throw error
@@ -18,6 +17,15 @@ export async function logout() {
 	try {
 		const response = await http.post(api.usersEndPoint + 'logout')
 		return response
+	} catch (error) {
+		throw error
+	}
+}
+
+export async function getCurrentUser() {
+	try {
+		const response = await http.get(api.usersEndPoint + 'me')
+		return response.data
 	} catch (error) {
 		throw error
 	}

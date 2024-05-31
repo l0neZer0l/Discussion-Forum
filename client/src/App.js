@@ -24,11 +24,13 @@ class App extends Component {
 
 	async componentDidMount() {
 		try {
-			const response = await http.get(`${api.usersEndPoint}/me`)
+			const response = await http.get(api.usersEndPoint + 'me')
 			const user = response.data
 			this.setState({ user })
 		} catch (ex) {
 			console.error('Error fetching user data:', ex)
+			// Set user to null or handle the error in another way
+			this.setState({ user: null })
 		}
 	}
 

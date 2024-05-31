@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 const Joi = require('joi')
 
 const userSchema = new mongoose.Schema({
+	_id: mongoose.Schema.Types.ObjectId, // Specify _id as ObjectId type
 	name: {
 		type: String,
 		required: true,

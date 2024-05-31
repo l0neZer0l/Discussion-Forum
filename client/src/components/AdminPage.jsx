@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import http from '../services/httpService';
 import { api } from '../config';
+import './AdminPage.css'; // Import CSS file for styling
 
 class AdminPage extends Component {
   state = {
@@ -59,10 +60,10 @@ class AdminPage extends Component {
     const { users, roles, selectedUser, selectedRole } = this.state;
 
     return (
-      <div>
+      <div className="admin-page">
         <h1>Admin Page</h1>
         {/* User Role Management Section */}
-        <div>
+        <div className="user-role-management">
           <h2>User Role Management</h2>
           {/* Dropdown to select a user */}
           <select onChange={this.handleUserSelect} value={selectedUser ? selectedUser._id : ''}>

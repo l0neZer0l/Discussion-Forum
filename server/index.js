@@ -3,6 +3,16 @@ const express = require('express')
 const mongoose = require('mongoose')
 const session = require('express-session')
 const MongoStore = require('connect-mongo')
+
+// MongoDB URL
+const mongoDBURL = process.env.mongoDBURL || 'mongodb://localhost:27017/reforum'
+
+// Create a new instance of MongoStore
+const mongoStoreInstance = MongoStore.create({
+	mongoUrl: mongoDBURL,
+	ttl: 180 * 60 * 1000, // session expiration time (3 hours)
+})
+
 const cookieParser = require('cookie-parser')
 const cors = require('cors')
 const users = require('./routes/users')
@@ -10,9 +20,6 @@ const posts = require('./routes/posts')
 const tags = require('./routes/tags')
 const replies = require('./routes/replies')
 const app = express()
-
-// MongoDB URL
-const mongoDBURL = process.env.mongoDBURL || 'mongodb://localhost:27017/reforum'
 
 // Connect to MongoDB
 mongoose
@@ -42,10 +49,18 @@ app.use(
 		secret: process.env.SESSION_SECRET || 'ESSTHSFORUM',
 		resave: false,
 		saveUninitialized: false,
-		store: MongoStore.create({ mongoUrl: mongoDBURL }),
+		store: mongoStoreInstance,
 		cookie: { maxAge: 180 * 60 * 1000 }, // 3 hours
 	}),
 )
+
+// Authentication middleware
+const requireLogin = (req, res, next) => {
+	if (!req.session.userId) {
+		return res.status(401).send('Unauthorized')
+	}
+	next()
+}
 
 // Routes
 app.get('/', (req, res) => {
@@ -53,9 +68,9 @@ app.get('/', (req, res) => {
 })
 
 app.use('/users', users)
-app.use('/posts', posts)
-app.use('/tags', tags)
-app.use('/replies', replies)
+app.use('/posts', requireLogin, posts) // Protect posts route, require login
+app.use('/tags', requireLogin, tags) // Protect tags route, require login
+app.use('/replies', requireLogin, replies) // Protect replies route, require login
 
 // Start the server
 const port = process.env.PORT || 4000

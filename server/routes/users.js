@@ -1,9 +1,9 @@
 const express = require('express')
 const bcrypt = require('bcrypt')
+const mongoose = require('mongoose')
+const adminMiddleware = require('../middleware/admin')
 const { User, validateUser } = require('../models/user')
 const nodemailer = require('nodemailer')
-const auth = require('../middleware/auth')
-
 const router = express.Router()
 
 // Function to send registration confirmation email
@@ -45,8 +45,8 @@ async function sendRegistrationEmail(user) {
 	}
 }
 
-// PUT endpoint to update user role
-router.put('/:id/role', async (req, res) => {
+// PUT endpoint to update user role (Protected route accessible only by admins)
+router.put('/:id/role', adminMiddleware, async (req, res) => {
 	const { id } = req.params
 	const { role } = req.body
 
@@ -70,71 +70,74 @@ router.put('/:id/role', async (req, res) => {
 	}
 })
 
-// POST endpoint for user registration
-router.post('/register', async (req, res) => {
-	const { error } = validateUser(req.body)
-	if (error) return res.status(400).send(error.details[0].message)
-
-	let user = await User.findOne({ email: req.body.email })
-	if (user) return res.status(400).send('User already registered')
-
-	let defaultRole = 'guest'
-	if (req.body.isAdmin) {
-		defaultRole = 'admin'
-	}
-
-	user = new User({
-		name: req.body.name,
-		email: req.body.email,
-		username: req.body.username,
-		password: await bcrypt.hash(req.body.password, 10),
-		role: defaultRole,
-		cinNumber: req.body.cinNumber,
-	})
-
+// GET endpoint to get a user by ID
+router.get('/:id', async (req, res) => {
 	try {
-		await user.save()
-		sendRegistrationEmail(user)
-		res.send('Registration successful. Please wait for admin confirmation.')
-	} catch (err) {
-		console.error('Error registering user:', err)
+		const userId = req.params.id
+		if (!mongoose.Types.ObjectId.isValid(userId)) {
+			return res.status(400).send('Invalid user ID')
+		}
+
+		const user = await User.findById(userId).select('-password')
+		if (!user) {
+			return res.status(404).send("This user doesn't exist in the database!")
+		}
+
+		res.send(user)
+	} catch (error) {
+		console.error('Error fetching user profile:', error)
 		res.status(500).send('Internal server error')
 	}
 })
 
-// GET endpoint to get a user by ID
-router.get('/:id', async (req, res) => {
-	const user = await User.findById(req.params.id).select('-password')
-	if (!user)
-		return res.status(404).send("This user doesn't exist in the database!")
-	res.send(user)
-})
-
 // GET endpoint to get current user profile
-router.get('/me', auth, async (req, res) => {
-	const user = await User.findById(req.session.userId).select('-password')
-	if (!user)
-		return res.status(404).send("This user doesn't exist in the database!")
-	res.send(user)
+router.get('/me', async (req, res) => {
+	try {
+		// Check if user session exists
+		if (!req.session.userId) {
+			return res.status(401).send('Unauthorized')
+		}
+
+		// Fetch user data using session userId
+		const user = await User.findById(req.session.userId).select('-password')
+		if (!user) {
+			return res.status(404).send("This user doesn't exist in the database!")
+		}
+
+		res.send(user)
+	} catch (error) {
+		console.error('Error fetching user profile:', error)
+		res.status(500).send('Internal server error')
+	}
 })
 
 // POST endpoint for user login
 router.post('/login', async (req, res) => {
 	const { email, password } = req.body
 
-	if (!email || !password)
+	if (!email || !password) {
 		return res.status(400).send('Email and password are required')
+	}
 
-	let user = await User.findOne({ email })
-	if (!user) return res.status(400).send('Invalid email or password')
+	try {
+		const user = await User.findOne({ email })
+		if (!user) {
+			return res.status(400).send('Invalid email or password')
+		}
 
-	const validPassword = await bcrypt.compare(password, user.password)
-	if (!validPassword) return res.status(400).send('Invalid email or password')
+		const validPassword = await bcrypt.compare(password, user.password)
+		if (!validPassword) {
+			return res.status(400).send('Invalid email or password')
+		}
 
-	// Set user's session upon successful login
-	req.session.userId = user._id
+		// Set user's session upon successful login
+		req.session.userId = user._id
 
-	res.send('Login successful')
+		res.send('Login successful')
+	} catch (error) {
+		console.error('Error logging in user:', error)
+		res.status(500).send('Internal server error')
+	}
 })
 
 // POST endpoint for user logout

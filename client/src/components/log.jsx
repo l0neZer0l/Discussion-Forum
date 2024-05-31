@@ -21,7 +21,7 @@ class Log extends Form {
   doSubmit = async () => {
     try {
       const { data } = this.state;
-      await login(data.email, data.password); // Login function now handles storing token
+      await login(data.email, data.password); // Login function now handles storing session
       window.location = "/dashboard"; // Redirect to dashboard after successful login
     } catch (ex) {
       if (ex.response && ex.response.status === 400) {
@@ -31,6 +31,7 @@ class Log extends Form {
   };
 
   render() {
+    // If session exists, redirect to dashboard
     if (localStorage.getItem("token")) {
       return <Redirect to="/dashboard" />;
     }

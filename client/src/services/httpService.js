@@ -16,18 +16,13 @@ http.interceptors.response.use(null, (error) => {
 		error.response.status < 500
 	) {
 		// Handle expected errors
-		toast('An unexpected error occurred!')
+		toast.error('An unexpected error occurred!')
 	} else if (error) {
 		// Handle unexpected errors
-		toast('An unexpected error occurred!')
+		toast.error('An unexpected error occurred!')
 		console.error('Unexpected error:', error)
 	}
 	return Promise.reject(error)
 })
 
-export default {
-	get: http.get,
-	post: http.post,
-	put: http.put,
-	delete: http.delete,
-}
+export default http

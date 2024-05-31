@@ -4,5 +4,3 @@ export const api = {
 	postsEndPoint: 'http://localhost:5000/posts/',
 	repliesEndPoint: 'http://localhost:5000/reply/',
 }
-
-export const jwtPrivateKey = process.env.jwtPrivateKey

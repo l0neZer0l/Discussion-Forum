@@ -1,18 +1,68 @@
-const session = require('express-session')
-const MongoDBStore = require('connect-mongodb-session')(session)
-require('dotenv').config() // Load environment variables
+const express = require('express')
+const router = express.Router()
+const bcrypt = require('bcrypt')
+const User = require('../models/user') // Assuming you have a User model
 
-const store = new MongoDBStore({
-	uri: process.env.MONGODB_URI, // Use your MongoDB connection string from environment variable
-	collection: 'sessions',
+// POST endpoint for user login
+router.post('/login', async (req, res) => {
+	const { email, password } = req.body
+
+	try {
+		// Find the user by email
+		const user = await User.findOne({ email })
+
+		// If user not found or password does not match, send error response
+		if (!user || !(await bcrypt.compare(password, user.password))) {
+			return res.status(400).json({ message: 'Invalid email or password' })
+		}
+
+		// Set user's session upon successful login
+		req.session.userId = user._id
+
+		res.status(200).json({ message: 'Login successful' })
+	} catch (error) {
+		console.error('Error logging in:', error)
+		res.status(500).json({ message: 'Internal server error' })
+	}
 })
 
-module.exports = session({
-	secret: process.env.SESSION_SECRET, // Use session secret from environment variable
-	resave: false,
-	saveUninitialized: false,
-	store: store,
-	cookie: {
-		maxAge: 1000 * 60 * 60 * 24, // 1 day
-	},
+// POST endpoint for user logout
+router.post('/logout', async (req, res) => {
+	try {
+		// Destroy the user's session upon logout
+		req.session.destroy((err) => {
+			if (err) {
+				console.error('Error destroying session:', err)
+				return res.status(500).json({ message: 'Internal server error' })
+			}
+			res.status(200).json({ message: 'Logged out successfully' })
+		})
+	} catch (error) {
+		console.error('Error logging out:', error)
+		res.status(500).json({ message: 'Internal server error' })
+	}
 })
+
+// GET endpoint to get current user profile
+router.get('/me', async (req, res) => {
+	try {
+		// Check if user session exists
+		if (!req.session.userId) {
+			return res.status(401).json({ message: 'Unauthorized' })
+		}
+
+		// Fetch the current user's profile
+		const user = await User.findById(req.session.userId).select('-password')
+
+		if (!user) {
+			return res.status(404).json({ message: 'User not found' })
+		}
+
+		res.status(200).json(user)
+	} catch (error) {
+		console.error('Error fetching user profile:', error)
+		res.status(500).json({ message: 'Internal server error' })
+	}
+})
+
+module.exports = router

@@ -6,8 +6,8 @@ class EditPost extends Component {
   state = {
     title: '',
     description: '',
-    availableTags: [], // To store available tags fetched from the server
-    selectedTags: [{ name: '' }] // To store selected tags
+    availableTags: [],
+    selectedTags: [''],
   };
 
   async componentDidMount() {
@@ -15,26 +15,23 @@ class EditPost extends Component {
     const { data: post } = await http.get(`${api.postsEndPoint}/${id}`);
     const { title, description, tags } = post;
 
-    // Fetch available tags from the server
     const { data: availableTags } = await http.get(`${api.tagsEndPoint}`);
 
     this.setState({ title, description, availableTags, selectedTags: tags });
   }
 
   handleChange = ({ currentTarget: input }) => {
-    const state = { ...this.state };
-    state[input.name] = input.value;
-    this.setState(state);
+    this.setState({ [input.name]: input.value });
   };
 
   handleTagChange = (e, index) => {
     const selectedTags = [...this.state.selectedTags];
-    selectedTags[index].name = e.target.value;
+    selectedTags[index] = e.target.value;
     this.setState({ selectedTags });
   };
 
   handleAddTag = () => {
-    const selectedTags = [...this.state.selectedTags, { name: '' }];
+    const selectedTags = [...this.state.selectedTags, ''];
     this.setState({ selectedTags });
   };
 
@@ -48,29 +45,23 @@ class EditPost extends Component {
     const { id } = this.props.match.params;
     const { title, description, selectedTags } = this.state;
 
-    // Validate before sending
-    if (title.length < 10 || title.length > 80) {
-      alert("Title must be between 10 and 80 characters.");
-      return;
-    }
-
-    if (description.length < 5 || description.length > 1024) {
-      alert("Description must be between 5 and 1024 characters.");
+    if (title.length < 10 || title.length > 80 || description.length < 5 || description.length > 1024) {
+      alert('Please enter valid title and description.');
       return;
     }
 
     const payload = {
       title,
       description,
-      tags: selectedTags.filter(tag => tag.name) // Remove empty tags
+      tags: selectedTags.filter(tag => tag.trim() !== ''),
     };
 
     try {
       await http.put(`${api.postsEndPoint}/${id}`, payload);
       this.props.history.push('/dashboard');
     } catch (ex) {
-      console.error("Error updating post:", ex);
-      alert("An error occurred while updating the post.");
+      console.error('Error updating post:', ex);
+      alert('An error occurred while updating the post.');
     }
   };
 
@@ -108,12 +99,12 @@ class EditPost extends Component {
               <div key={index} className="input-group mb-3">
                 <select
                   className="form-control"
-                  value={tag.name}
+                  value={tag}
                   onChange={(e) => this.handleTagChange(e, index)}
                 >
                   <option value="">Select a Tag</option>
                   {availableTags.map((availableTag, idx) => (
-                    <option key={idx} value={availableTag.name}>{availableTag.name}</option>
+                    <option key={idx} value={availableTag}>{availableTag}</option>
                   ))}
                 </select>
                 <div className="input-group-append">
