@@ -54,6 +54,7 @@ class Dashboard extends Component {
 
   render() {
     const { user } = this.props;
+    //console.log("user - ",user)
     const { allPosts, pageSize, currentPage, tags, selectedTag } = this.state;
     const filteredPosts = this.getFilteredPosts();
     const paginatedPosts = paginate(filteredPosts, currentPage, pageSize);

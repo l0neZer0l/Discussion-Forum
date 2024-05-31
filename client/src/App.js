@@ -1,9 +1,5 @@
-// App.js
-
 import React, { Component } from 'react'
 import { Route, Switch, Redirect } from 'react-router-dom'
-import http from './services/httpService'
-import { api } from './config.js'
 import Dashboard from './components/dashboard'
 import Jumbotron from './components/common/jumbotron'
 import NotFound from './components/not-found'
@@ -22,46 +18,53 @@ class App extends Component {
 		user: null,
 	}
 
-	async componentDidMount() {
-		try {
-			const response = await http.get(api.usersEndPoint + 'me')
-			const user = response.data
-			this.setState({ user })
-		} catch (ex) {
-			console.error('Error fetching user data:', ex)
-			// Set user to null or handle the error in another way
-			this.setState({ user: null })
+	componentDidMount() {
+		const userCookie = this.getCookie('user')
+		if (userCookie) {
+			this.setState({ user: userCookie })
 		}
 	}
 
+	getCookie(name) {
+		const value = `; ${document.cookie}`
+		const parts = value.split(`; ${name}=`)
+		if (parts.length === 2) return parts.pop().split(';').shift()
+		return null
+	}
+
 	render() {
+		const { user } = this.state
+
 		return (
 			<div>
-				<NavBar user={this.state.user} />
+				<NavBar user={user} />
 				<Switch>
-					<Route path='/users/login' component={Log} />
-					<Route path='/users/register' component={Register} />
-					<Route path='/users/logout' component={Logout} />
 					<Route
-						path='/dashboard'
-						render={(props) => <Dashboard {...props} user={this.state.user} />}
+						path='/users/login'
+						render={(props) =>
+							user ? <Redirect to='/dashboard' /> : <Log {...props} />
+						}
 					/>
+					<Route
+						path='/users/register'
+						render={(props) =>
+							user ? <Redirect to='/dashboard' /> : <Register {...props} />
+						}
+					/>
+					<Route path='/users/logout' component={Logout} />
+					<ProtectedRoute path='/dashboard' component={Dashboard} user={user} />
 					<Route path='/not-found' component={NotFound} />
-					<ProtectedRoute
-						path='/new-post'
-						render={(props) => <NewPost {...props} user={this.state.user} />}
-						user={this.state.user}
-					/>
+					<ProtectedRoute path='/new-post' component={NewPost} user={user} />
 					<ProtectedRoute
 						path='/edit-post/:id'
-						render={(props) => <EditPost {...props} user={this.state.user} />}
-						user={this.state.user}
+						component={EditPost}
+						user={user}
 					/>
 					<Route
 						path='/post/:id'
-						render={(props) => <PostPage {...props} user={this.state.user} />}
+						render={(props) => <PostPage {...props} user={user} />}
 					/>
-					<Route path='/admin' component={AdminPage} />
+					<ProtectedRoute path='/admin' component={AdminPage} user={user} />
 					<Route exact path='/' component={Jumbotron} />
 					<Redirect from='/users' to='/users/login' />
 					<Redirect to='/not-found' />

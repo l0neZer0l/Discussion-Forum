@@ -17,12 +17,23 @@ class Log extends Form {
     email: Joi.string().required().label("Email ID"),
     password: Joi.string().required().label("Password"),
   };
-
+  setCookie(name, value, days) {
+    const d = new Date();
+    d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
+    const expires = "expires=" + d.toUTCString();
+    document.cookie = name + "=" + value + ";" + expires + ";path=/";
+  }
   doSubmit = async () => {
     try {
       const { data } = this.state;
-      await login(data.email, data.password); // Login function now handles storing session
-      window.location = "/dashboard"; // Redirect to dashboard after successful login
+      const response = await login(data.email, data.password); // Login function now handles storing session
+      console.log("res - ",response)
+      if (response.status === 200) {
+        this.setCookie('user', data.email, 1); // Setting the cookie for 1 day
+        console.log("blabla")
+        window.location = "/dashboard";
+      }
+      //window.location = "/dashboard"; // Redirect to dashboard after successful login
     } catch (ex) {
       if (ex.response && ex.response.status === 400) {
         toast.error("Invalid Email Or Password");
@@ -32,9 +43,6 @@ class Log extends Form {
 
   render() {
     // If session exists, redirect to dashboard
-    if (localStorage.getItem("token")) {
-      return <Redirect to="/dashboard" />;
-    }
 
     return (
       <div>
