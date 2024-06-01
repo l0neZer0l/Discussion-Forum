@@ -3,6 +3,12 @@ const express = require('express')
 const mongoose = require('mongoose')
 const session = require('express-session')
 const MongoStore = require('connect-mongo')
+const cookieParser = require('cookie-parser')
+const cors = require('cors')
+const users = require('./routes/users')
+const posts = require('./routes/posts')
+const tags = require('./routes/tags')
+const replies = require('./routes/replies')
 
 // MongoDB URL
 const mongoDBURL = process.env.mongoDBURL || 'mongodb://localhost:27017/reforum'
@@ -13,12 +19,6 @@ const mongoStoreInstance = MongoStore.create({
 	ttl: 180 * 60 * 1000, // session expiration time (3 hours)
 })
 
-const cookieParser = require('cookie-parser')
-const cors = require('cors')
-const users = require('./routes/users')
-const posts = require('./routes/posts')
-const tags = require('./routes/tags')
-const replies = require('./routes/replies')
 const app = express()
 
 // Connect to MongoDB
@@ -56,7 +56,7 @@ app.use(
 
 // Authentication middleware
 const requireLogin = (req, res, next) => {
-	if (!req.session.userId) {
+	if (!req.session.userEmail) {
 		return res.status(401).send('Unauthorized')
 	}
 	next()

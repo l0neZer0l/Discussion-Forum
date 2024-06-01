@@ -21,20 +21,20 @@ async function sendRegistrationEmail(user) {
 		to: 'adembensalem8@gmail.com',
 		subject: 'New User Registration',
 		html: `
-            <h2>Registration Confirmation</h2>
-            <p>Hello Admin,</p>
-            <p>A new user has registered with the following details:</p>
-            <ul>
-                <li><strong>Name:</strong> ${user.name}</li>
-                <li><strong>Email:</strong> ${user.email}</li>
-                <li><strong>Username:</strong> ${user.username}</li>
-                <li><strong>Role:</strong> ${user.role}</li>
-                <li><strong>CIN Number:</strong> ${user.cinNumber}</li>
-            </ul>
-            <p>Please take necessary action to confirm the user's registration.</p>
-            <p>Regards,</p>
-            <p>Your Website Team</p>
-        `,
+      <h2>Registration Confirmation</h2>
+      <p>Hello Admin,</p>
+      <p>A new user has registered with the following details:</p>
+      <ul>
+        <li><strong>Name:</strong> ${user.name}</li>
+        <li><strong>Email:</strong> ${user.email}</li>
+        <li><strong>Username:</strong> ${user.username}</li>
+        <li><strong>Role:</strong> ${user.role}</li>
+        <li><strong>CIN Number:</strong> ${user.cinNumber}</li>
+      </ul>
+      <p>Please take necessary action to confirm the user's registration.</p>
+      <p>Regards,</p>
+      <p>Your Website Team</p>
+    `,
 	}
 
 	try {
@@ -70,15 +70,12 @@ router.put('/:id/role', adminMiddleware, async (req, res) => {
 	}
 })
 
-// GET endpoint to get a user by ID
-router.get('/:id', async (req, res) => {
+// GET endpoint to get a user by email
+router.get('/email/:email', async (req, res) => {
 	try {
-		const userId = req.params.id
-		if (!mongoose.Types.ObjectId.isValid(userId)) {
-			return res.status(400).send('Invalid user ID')
-		}
-
-		const user = await User.findById(userId).select('-password')
+		const user = await User.findOne({ email: req.params.email }).select(
+			'-password',
+		)
 		if (!user) {
 			return res.status(404).send("This user doesn't exist in the database!")
 		}
@@ -128,6 +125,13 @@ router.post('/login', async (req, res) => {
 		const validPassword = await bcrypt.compare(password, user.password)
 		if (!validPassword) {
 			return res.status(400).send('Invalid email or password')
+		}
+
+		// Check if user isAdmin
+		if (user.isAdmin) {
+			user.role = 'admin'
+			user.status = 'confirmed'
+			await user.save()
 		}
 
 		// Set user's session upon successful login

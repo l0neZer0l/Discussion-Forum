@@ -12,16 +12,22 @@ import ProtectedRoute from './components/common/protectedRoute'
 import PostPage from './components/PostPage'
 import EditPost from './components/EditPost'
 import AdminPage from './components/AdminPage'
+import { getCurrentUser } from './services/authService'
 
 class App extends Component {
 	state = {
 		user: null,
 	}
 
-	componentDidMount() {
-		const userCookie = this.getCookie('user')
-		if (userCookie) {
-			this.setState({ user: userCookie })
+	async componentDidMount() {
+		const email = this.getCookie('userEmail')
+		if (email) {
+			try {
+				const user = await getCurrentUser(email)
+				this.setState({ user })
+			} catch (error) {
+				console.error('Error fetching current user:', error)
+			}
 		}
 	}
 

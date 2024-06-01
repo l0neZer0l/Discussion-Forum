@@ -16,7 +16,7 @@ class Register extends Form {
   schema = {
     name: Joi.string().required().label("Full Name"),
     username: Joi.string().required().label("Username"),
-    email: Joi.string().required().label("Email ID"),
+    email: Joi.string().email().required().label("Email"),
     password: Joi.string().required().label("Password"),
     password2: Joi.string().required().label("Confirm Password"),
     role: Joi.string().required().valid("professeur", "ex-etudiant", "etudiant").label("Role"),

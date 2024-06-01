@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 const Joi = require('joi')
 
 const userSchema = new mongoose.Schema({
-	_id: mongoose.Schema.Types.ObjectId, // Specify _id as ObjectId type
+	_id: mongoose.Schema.Types.ObjectId,
 	name: {
 		type: String,
 		required: true,
@@ -44,6 +44,10 @@ const userSchema = new mongoose.Schema({
 		required: true,
 		minlength: 8,
 		maxlength: 8,
+	},
+	isAdmin: {
+		type: Boolean,
+		default: false,
 	},
 })
 
