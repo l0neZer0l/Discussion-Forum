@@ -5,14 +5,14 @@ import Jumbotron from './components/common/jumbotron'
 import NotFound from './components/not-found'
 import NewPost from './components/createpost'
 import Log from './components/log'
-import Logout from './components/logout'
+import Logout from './components/logout' // Import Logout component
 import Register from './components/register'
 import NavBar from './components/navbar'
 import ProtectedRoute from './components/common/protectedRoute'
 import PostPage from './components/PostPage'
 import EditPost from './components/EditPost'
 import AdminPage from './components/AdminPage'
-import { getCurrentUser } from './services/authService'
+import { getCurrentUser, logout } from './services/authService'
 
 class App extends Component {
 	state = {
@@ -38,12 +38,22 @@ class App extends Component {
 		return null
 	}
 
+	handleLogout = async () => {
+		try {
+			await logout()
+			this.setState({ user: null }) // Clear user state after logout
+		} catch (error) {
+			console.error('Error logging out:', error)
+		}
+	}
+
 	render() {
 		const { user } = this.state
 
 		return (
 			<div>
-				<NavBar user={user} />
+				<NavBar user={user} onLogout={this.handleLogout} />{' '}
+				{/* Pass onLogout prop */}
 				<Switch>
 					<Route
 						path='/users/login'
@@ -57,7 +67,8 @@ class App extends Component {
 							user ? <Redirect to='/dashboard' /> : <Register {...props} />
 						}
 					/>
-					<Route path='/users/logout' component={Logout} />
+					<Route path='/users/logout' component={Logout} />{' '}
+					{/* Add route for logout */}
 					<ProtectedRoute path='/dashboard' component={Dashboard} user={user} />
 					<Route path='/not-found' component={NotFound} />
 					<ProtectedRoute path='/new-post' component={NewPost} user={user} />

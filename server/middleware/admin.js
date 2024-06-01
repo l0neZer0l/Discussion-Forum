@@ -3,12 +3,12 @@ const { User } = require('../models/user')
 module.exports = async function (req, res, next) {
 	try {
 		// Check if user session exists
-		if (!req.session.userId) {
+		if (!req.session.userEmail) {
 			return res.status(401).send('Unauthorized')
 		}
 
-		// Fetch the user from the database using the session user ID
-		const user = await User.findById(req.session.userId)
+		// Fetch the user from the database using the session userEmail
+		const user = await User.findOne({ email: req.session.userEmail })
 
 		// Check if user is an admin
 		if (!user || !user.isAdmin) {

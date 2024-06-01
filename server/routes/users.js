@@ -1,11 +1,10 @@
 const express = require('express')
 const bcrypt = require('bcrypt')
 const mongoose = require('mongoose')
-const adminMiddleware = require('../middleware/admin')
 const { User, validateUser } = require('../models/user')
 const nodemailer = require('nodemailer')
 const router = express.Router()
-
+const adminMiddleware = require('../middleware/admin')
 // Function to send registration confirmation email
 async function sendRegistrationEmail(user) {
 	const transporter = nodemailer.createTransport({
@@ -47,6 +46,7 @@ async function sendRegistrationEmail(user) {
 
 // PUT endpoint to update user role (Protected route accessible only by admins)
 router.put('/:id/role', adminMiddleware, async (req, res) => {
+	// Use adminMiddleware here
 	const { id } = req.params
 	const { role } = req.body
 
@@ -69,7 +69,6 @@ router.put('/:id/role', adminMiddleware, async (req, res) => {
 		res.status(500).send('Internal server error')
 	}
 })
-
 // GET endpoint to get a user by email
 router.get('/email/:email', async (req, res) => {
 	try {
@@ -91,12 +90,14 @@ router.get('/email/:email', async (req, res) => {
 router.get('/me', async (req, res) => {
 	try {
 		// Check if user session exists
-		if (!req.session.userId) {
+		if (!req.session.userEmail) {
 			return res.status(401).send('Unauthorized')
 		}
 
-		// Fetch user data using session userId
-		const user = await User.findById(req.session.userId).select('-password')
+		// Fetch user data using session userEmail
+		const user = await User.findOne({ email: req.session.userEmail }).select(
+			'-password',
+		)
 		if (!user) {
 			return res.status(404).send("This user doesn't exist in the database!")
 		}
@@ -107,7 +108,6 @@ router.get('/me', async (req, res) => {
 		res.status(500).send('Internal server error')
 	}
 })
-
 // POST endpoint for user login
 router.post('/login', async (req, res) => {
 	const { email, password } = req.body
@@ -127,15 +127,8 @@ router.post('/login', async (req, res) => {
 			return res.status(400).send('Invalid email or password')
 		}
 
-		// Check if user isAdmin
-		if (user.isAdmin) {
-			user.role = 'admin'
-			user.status = 'confirmed'
-			await user.save()
-		}
-
 		// Set user's session upon successful login
-		req.session.userId = user._id
+		req.session.userEmail = user.email
 
 		res.send('Login successful')
 	} catch (error) {
@@ -146,14 +139,21 @@ router.post('/login', async (req, res) => {
 
 // POST endpoint for user logout
 router.post('/logout', (req, res) => {
-	// Destroy the user's session upon logout
-	req.session.destroy((err) => {
-		if (err) {
-			console.error('Error destroying session:', err)
-			return res.status(500).send('Internal server error')
-		}
-		res.send('Logged out successfully')
-	})
+	try {
+		// Destroy the user's session upon logout
+		req.session.destroy((err) => {
+			if (err) {
+				console.error('Error destroying session:', err)
+				return res.status(500).json({ message: 'Internal server error' })
+			}
+			res.clearCookie('connect.sid') // Clear session cookie
+			res.clearCookie('userEmail') // Clear user email cookie
+			res.status(200).json({ message: 'Logged out successfully' })
+		})
+	} catch (error) {
+		console.error('Error logging out:', error)
+		res.status(500).json({ message: 'Internal server error' })
+	}
 })
 
 module.exports = router

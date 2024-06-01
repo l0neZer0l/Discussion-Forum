@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const bcrypt = require('bcrypt')
-const User = require('../models/user') // Assuming you have a User model
+const { User } = require('../models/user')
 
 // POST endpoint for user login
 router.post('/login', async (req, res) => {
@@ -17,7 +17,7 @@ router.post('/login', async (req, res) => {
 		}
 
 		// Set user's session upon successful login
-		req.session.userId = user._id
+		req.session.userEmail = user.email
 
 		res.status(200).json({ message: 'Login successful' })
 	} catch (error) {
@@ -35,6 +35,9 @@ router.post('/logout', async (req, res) => {
 				console.error('Error destroying session:', err)
 				return res.status(500).json({ message: 'Internal server error' })
 			}
+
+			res.clearCookie('connect.sid')
+			res.clearCookie('userEmail')
 			res.status(200).json({ message: 'Logged out successfully' })
 		})
 	} catch (error) {
@@ -47,12 +50,14 @@ router.post('/logout', async (req, res) => {
 router.get('/me', async (req, res) => {
 	try {
 		// Check if user session exists
-		if (!req.session.userId) {
+		if (!req.session.userEmail) {
 			return res.status(401).json({ message: 'Unauthorized' })
 		}
 
 		// Fetch the current user's profile
-		const user = await User.findById(req.session.userId).select('-password')
+		const user = await User.findOne({ email: req.session.userEmail }).select(
+			'-password',
+		)
 
 		if (!user) {
 			return res.status(404).json({ message: 'User not found' })
