@@ -19,7 +19,9 @@
     "lodash": "^4.17.21",
     "mongodb": "^5.5.0",
     "mongoose": "^5.11.8",
-    "nodemailer": "^6.9.13"
+    "nodemailer": "^6.9.13",
+    "smtp-client": "^0.4.0",
+    "sparkpost": "^2.1.4"
   },
   "devDependencies": {
     "nodemon": "^2.0.6"

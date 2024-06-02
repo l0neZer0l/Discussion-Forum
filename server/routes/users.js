@@ -5,35 +5,42 @@ const { User, validateUser } = require('../models/user')
 const nodemailer = require('nodemailer')
 const router = express.Router()
 const adminMiddleware = require('../middleware/admin')
+const { ObjectId } = mongoose.Types
+
 // Function to send registration confirmation email
-async function sendRegistrationEmail(user) {
+async function sendRegistrationEmail(user, selectedRole) {
 	const transporter = nodemailer.createTransport({
-		service: 'gmail',
+		host: 'smtp.office365.com',
+		port: 587,
+		secure: false, // true for 465, false for other ports
 		auth: {
-			user: 'essthsforum@gmail.com',
-			pass: 'Essthsforum2006?',
+			user: 'adam.bensalem@essths.u-sousse.tn', // Office 365 email
+			pass: 'WeKueHhCe8', // Office 365 password
+		},
+		tls: {
+			ciphers: 'SSLv3',
 		},
 	})
 
 	const mailOptions = {
-		from: 'essthsforum@gmail.com',
-		to: 'adembensalem8@gmail.com',
-		subject: 'New User Registration',
+		from: 'adam.bensalem@essths.u-sousse.tn', // sender address
+		to: 'adembensalem8@gmail.com', // list of receivers
+		subject: 'New User Registration', // Subject line
 		html: `
-      <h2>Registration Confirmation</h2>
-      <p>Hello Admin,</p>
-      <p>A new user has registered with the following details:</p>
-      <ul>
-        <li><strong>Name:</strong> ${user.name}</li>
-        <li><strong>Email:</strong> ${user.email}</li>
-        <li><strong>Username:</strong> ${user.username}</li>
-        <li><strong>Role:</strong> ${user.role}</li>
-        <li><strong>CIN Number:</strong> ${user.cinNumber}</li>
-      </ul>
-      <p>Please take necessary action to confirm the user's registration.</p>
-      <p>Regards,</p>
-      <p>Your Website Team</p>
-    `,
+            <h2>Registration Confirmation</h2>
+            <p>Hello Admin,</p>
+            <p>A new user has registered with the following details:</p>
+            <ul>
+                <li><strong>Name:</strong> ${user.name}</li>
+                <li><strong>Email:</strong> ${user.email}</li>
+                <li><strong>Username:</strong> ${user.username}</li>
+                <li><strong>Role:</strong> ${selectedRole}</li>
+                <li><strong>CIN Number:</strong> ${user.cinNumber}</li>
+            </ul>
+            <p>Please take necessary action to confirm the user's registration.</p>
+            <p>Regards,</p>
+            <p>Your Website Team</p>
+        `,
 	}
 
 	try {
@@ -69,6 +76,7 @@ router.put('/:id/role', adminMiddleware, async (req, res) => {
 		res.status(500).send('Internal server error')
 	}
 })
+
 // GET endpoint to get a user by email
 router.get('/email/:email', async (req, res) => {
 	try {
@@ -108,6 +116,44 @@ router.get('/me', async (req, res) => {
 		res.status(500).send('Internal server error')
 	}
 })
+
+// POST endpoint for user registration
+router.post('/register', async (req, res) => {
+	try {
+		// Validate user input
+		const { error } = validateUser(req.body)
+		if (error) return res.status(400).send(error.details[0].message)
+
+		// Check if user already exists
+		let user = await User.findOne({ email: req.body.email })
+		if (user) return res.status(400).send('User already registered.')
+
+		// Create a new user
+		user = new User({
+			_id: new ObjectId(), // Generate a new ObjectId for the _id field
+			name: req.body.name,
+			email: req.body.email,
+			username: req.body.username,
+			password: req.body.password,
+			role: req.body.role,
+			cinNumber: req.body.cinNumber,
+		})
+
+		const salt = await bcrypt.genSalt(10)
+		user.password = await bcrypt.hash(user.password, salt)
+		await user.save()
+
+		// Send registration confirmation email
+		await sendRegistrationEmail(user)
+
+		// Respond with the registered user details
+		res.send(user)
+	} catch (error) {
+		console.error('Error registering user:', error)
+		res.status(500).send('Internal server error')
+	}
+})
+
 // POST endpoint for user login
 router.post('/login', async (req, res) => {
 	const { email, password } = req.body

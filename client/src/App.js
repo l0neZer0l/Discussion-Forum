@@ -64,7 +64,7 @@ class App extends Component {
 					<Route
 						path='/users/register'
 						render={(props) =>
-							user ? <Redirect to='/dashboard' /> : <Register {...props} />
+							user ? <Redirect to='/users/login' /> : <Register {...props} />
 						}
 					/>
 					<Route path='/users/logout' component={Logout} />{' '}
