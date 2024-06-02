@@ -18,7 +18,8 @@ router.get('/:id', async (req, res) => {
 })
 
 // Create a new post
-router.post('/', async (req, res) => {
+router.post('/create', async (req, res) => {
+	console.log('POST /posts/ request received with body:', req.body) // Debug log
 	const { error } = validatePost(req.body)
 	if (error) return res.status(400).send(error.details[0].message)
 
@@ -32,7 +33,7 @@ router.post('/', async (req, res) => {
 		title: req.body.title,
 		description: req.body.description,
 		tags: req.body.tags,
-		author: req.body.author, // assuming author is passed in req.body
+		author: req.user._id, // assuming author is passed in req.body
 	})
 
 	post = await post.save()

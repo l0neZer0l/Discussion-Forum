@@ -13,7 +13,7 @@ import PostPage from './components/PostPage'
 import EditPost from './components/EditPost'
 import AdminPage from './components/AdminPage'
 import { getCurrentUser, logout } from './services/authService'
-
+import Profile from './components/Profile'
 class App extends Component {
 	state = {
 		user: null,
@@ -68,7 +68,7 @@ class App extends Component {
 						}
 					/>
 					<Route path='/users/logout' component={Logout} />{' '}
-					{/* Add route for logout */}
+					<Route path='/profile' component={Profile} />
 					<ProtectedRoute path='/dashboard' component={Dashboard} user={user} />
 					<Route path='/not-found' component={NotFound} />
 					<ProtectedRoute path='/new-post' component={NewPost} user={user} />

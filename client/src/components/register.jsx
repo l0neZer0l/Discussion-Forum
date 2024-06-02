@@ -43,7 +43,7 @@ class Register extends Form {
   render() {
     // If registered state is true, redirect to login page
     if (this.state.registered) {
-      return <Redirect to="/login" />;
+      return <Redirect to="users/login"/>;
     }
     return (
       <React.Fragment>

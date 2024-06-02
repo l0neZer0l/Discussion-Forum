@@ -7,6 +7,42 @@ const router = express.Router()
 const adminMiddleware = require('../middleware/admin')
 const { ObjectId } = mongoose.Types
 
+router.post('/register', async (req, res) => {
+	try {
+		// Validate user input
+		const { error } = validateUser(req.body)
+		if (error) return res.status(400).send(error.details[0].message)
+
+		// Check if user already exists
+		let user = await User.findOne({ email: req.body.email })
+		if (user) return res.status(400).send('User already registered.')
+
+		// Create a new user
+		user = new User({
+			_id: new ObjectId(), // Generate a new ObjectId for the _id field
+			name: req.body.name,
+			email: req.body.email,
+			username: req.body.username,
+			password: req.body.password,
+			role: req.body.role,
+			cinNumber: req.body.cinNumber,
+		})
+
+		const salt = await bcrypt.genSalt(10)
+		user.password = await bcrypt.hash(user.password, salt)
+		await user.save()
+
+		// Send registration confirmation email
+		await sendRegistrationEmail(user, req.body.role)
+
+		// Respond with the registered user details
+		res.send(user)
+	} catch (error) {
+		console.error('Error registering user:', error)
+		res.status(500).send('Internal server error')
+	}
+})
+
 // Function to send registration confirmation email
 async function sendRegistrationEmail(user, selectedRole) {
 	const transporter = nodemailer.createTransport({
@@ -118,41 +154,6 @@ router.get('/me', async (req, res) => {
 })
 
 // POST endpoint for user registration
-router.post('/register', async (req, res) => {
-	try {
-		// Validate user input
-		const { error } = validateUser(req.body)
-		if (error) return res.status(400).send(error.details[0].message)
-
-		// Check if user already exists
-		let user = await User.findOne({ email: req.body.email })
-		if (user) return res.status(400).send('User already registered.')
-
-		// Create a new user
-		user = new User({
-			_id: new ObjectId(), // Generate a new ObjectId for the _id field
-			name: req.body.name,
-			email: req.body.email,
-			username: req.body.username,
-			password: req.body.password,
-			role: req.body.role,
-			cinNumber: req.body.cinNumber,
-		})
-
-		const salt = await bcrypt.genSalt(10)
-		user.password = await bcrypt.hash(user.password, salt)
-		await user.save()
-
-		// Send registration confirmation email
-		await sendRegistrationEmail(user)
-
-		// Respond with the registered user details
-		res.send(user)
-	} catch (error) {
-		console.error('Error registering user:', error)
-		res.status(500).send('Internal server error')
-	}
-})
 
 // POST endpoint for user login
 router.post('/login', async (req, res) => {

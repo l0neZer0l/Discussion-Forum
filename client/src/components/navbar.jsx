@@ -29,7 +29,9 @@ const NavBar = ({ user, onLogout }) => {
             </li>
           )}
           <li className="nav-item">
-            <span className="nav-link">Hi {user.username}</span>
+            <NavLink className="nav-link" to="/profile">
+              Hi {user.username}
+            </NavLink>
           </li>
           <li className="nav-item">
             <NavLink className="nav-link" to="#" onClick={onLogout}>

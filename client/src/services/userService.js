@@ -1,7 +1,23 @@
 import http from './httpService'
 import { api } from '../config.js'
 
-export function register(user) {
+export async function getUserProfile(email) {
+	return await http.get(api.usersEndPoint + 'profile/' + email)
+}
+
+export async function updateUserProfile(email, userData) {
+	return await http.put(api.usersEndPoint + 'profile/' + email, userData)
+}
+
+export async function followUser(email) {
+	return await http.post(api.usersEndPoint + 'profile/' + email + '/follow')
+}
+
+export async function unfollowUser(email) {
+	return await http.post(api.usersEndPoint + 'profile/' + email + '/unfollow')
+}
+
+export async function register(user) {
 	return http.post(
 		api.usersEndPoint + 'register',
 		{
