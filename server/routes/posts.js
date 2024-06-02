@@ -24,27 +24,41 @@ router.get('/:id', async (req, res) => {
 })
 
 // Create a new post
-router.post('/create', async (req, res) => {
+router.post('/', async (req, res) => {
+	if (!req.session.user) {
+		return res.status(401).send('Access denied. No user logged in.')
+	}
+
 	console.log('POST /posts/ request received with body:', req.body) // Debug log
 	const { error } = validatePost(req.body)
 	if (error) return res.status(400).send(error.details[0].message)
 
-	const tags = await Tag.find({
-		_id: { $in: req.body.tags.map((tag) => tag._id) },
-	})
-	if (tags.length !== req.body.tags.length)
-		return res.status(400).send('Invalid tags.')
+	let tags = []
+	if (req.body.tags && req.body.tags.length > 0) {
+		tags = await Tag.find({
+			_id: { $in: req.body.tags.map((tag) => tag._id) },
+		})
+		if (tags.length !== req.body.tags.length)
+			return res.status(400).send('Invalid tags.')
+	}
 
 	let post = new Post({
 		title: req.body.title,
 		description: req.body.description,
-		tags: req.body.tags,
-		author: req.user._id, // assuming author is passed in req.body
+		tags: req.body.tags || [], // Use empty array if tags are null or undefined
+		author: req.session.user.email, // Using user ID from session
 	})
 
-	post = await post.save()
-	res.send(post)
+	try {
+		post = await post.save()
+		res.send(post)
+	} catch (err) {
+		console.error('Error saving post:', err)
+		res.status(500).send('Internal server error')
+	}
 })
+
+module.exports = router
 
 // Update an existing post
 router.put('/:id', async (req, res) => {
