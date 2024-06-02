@@ -11,10 +11,16 @@ router.get('/', async (req, res) => {
 
 // Get a single post by ID
 router.get('/:id', async (req, res) => {
-	const post = await Post.findById(req.params.id)
-	if (!post)
-		return res.status(404).send('The post with the given ID was not found.')
-	res.send(post)
+	try {
+		const post = await Post.findOne({ _id: req.params.id })
+		if (!post) {
+			return res.status(404).send('The post with the given ID was not found.')
+		}
+		res.send(post)
+	} catch (error) {
+		console.error('Error fetching post:', error)
+		res.status(500).send('Internal server error')
+	}
 })
 
 // Create a new post
@@ -51,28 +57,39 @@ router.put('/:id', async (req, res) => {
 	if (tags.length !== req.body.tags.length)
 		return res.status(400).send('Invalid tags.')
 
-	const post = await Post.findByIdAndUpdate(
-		req.params.id,
-		{
-			title: req.body.title,
-			description: req.body.description,
-			tags: req.body.tags,
-		},
-		{ new: true },
-	)
+	try {
+		const post = await Post.findOneAndUpdate(
+			{ _id: req.params.id },
+			{
+				title: req.body.title,
+				description: req.body.description,
+				tags: req.body.tags,
+			},
+			{ new: true },
+		)
 
-	if (!post)
-		return res.status(404).send('The post with the given ID was not found.')
-
-	res.send(post)
+		if (!post) {
+			return res.status(404).send('The post with the given ID was not found.')
+		}
+		res.send(post)
+	} catch (error) {
+		console.error('Error updating post:', error)
+		res.status(500).send('Internal server error')
+	}
 })
 
 // Delete a post
 router.delete('/:id', async (req, res) => {
-	const post = await Post.findByIdAndRemove(req.params.id)
-	if (!post)
-		return res.status(404).send('The post with the given ID was not found.')
-	res.send(post)
+	try {
+		const post = await Post.findByIdAndRemove(req.params.id)
+		if (!post) {
+			return res.status(404).send('The post with the given ID was not found.')
+		}
+		res.send(post)
+	} catch (error) {
+		console.error('Error deleting post:', error)
+		res.status(500).send('Internal server error')
+	}
 })
 
 module.exports = router

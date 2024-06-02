@@ -88,13 +88,13 @@ async function sendRegistrationEmail(user, selectedRole) {
 }
 
 // PUT endpoint to update user role (Protected route accessible only by admins)
-router.put('/:id/role', adminMiddleware, async (req, res) => {
+router.put('/:email/role', adminMiddleware, async (req, res) => {
 	// Use adminMiddleware here
-	const { id } = req.params
+	const { email } = req.params
 	const { role } = req.body
 
 	try {
-		let user = await User.findById(id)
+		let user = await User.findOne({ email })
 		if (!user) {
 			return res.status(404).send('User not found')
 		}
