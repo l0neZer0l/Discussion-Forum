@@ -58,7 +58,9 @@ app.use(
 
 // Authentication middleware
 const requireLogin = (req, res, next) => {
+	console.log(req.session.userEmail)
 	if (!req.session.userEmail) {
+
 		return res.status(401).send('Unauthorized')
 	}
 	next()

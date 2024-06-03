@@ -135,6 +135,7 @@ router.get('/me', async (req, res) => {
 	try {
 		// Check if user session exists
 		if (!req.session.userEmail) {
+
 			return res.status(401).send('Unauthorized')
 		}
 

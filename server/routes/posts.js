@@ -25,7 +25,8 @@ router.get('/:id', async (req, res) => {
 
 // Create a new post
 router.post('/', async (req, res) => {
-	if (!req.session.user) {
+	console.log("session email:",req.session)
+	if (!req.session.userEmail) {
 		return res.status(401).send('Access denied. No user logged in.')
 	}
 
@@ -46,7 +47,7 @@ router.post('/', async (req, res) => {
 		title: req.body.title,
 		description: req.body.description,
 		tags: req.body.tags || [], // Use empty array if tags are null or undefined
-		author: req.session.user.email, // Using user ID from session
+		author: req.session.userEmail, // Using user ID from session
 	})
 
 	try {
