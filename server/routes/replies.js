@@ -13,11 +13,11 @@ router.post('/create/:id', auth, async (req, res) => {
 
 		const { error } = validateReply(req.body)
 		if (error) return res.status(400).send(error.details[0].message)
-
+		console.log(user)
 		const reply = new Reply({
 			post: req.params.id,
 			comment: req.body.comment,
-			author: req.user._id,
+			author: req.session.userEmail,,
 		})
 		await reply.save()
 

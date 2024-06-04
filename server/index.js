@@ -60,7 +60,6 @@ app.use(
 const requireLogin = (req, res, next) => {
 	console.log(req.session.userEmail)
 	if (!req.session.userEmail) {
-
 		return res.status(401).send('Unauthorized')
 	}
 	next()
@@ -74,7 +73,7 @@ app.get('/', (req, res) => {
 app.use('/users', users)
 app.use('/posts', requireLogin, posts) // Protect posts route, require login
 app.use('/tags', requireLogin, tags) // Protect tags route, require login
-app.use('/replies', requireLogin, replies) // Protect replies route, require login
+app.use('/reply', requireLogin, replies) // Protect replies route, require login
 
 // Start the server
 const port = process.env.PORT || 4000
