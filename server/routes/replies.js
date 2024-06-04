@@ -3,7 +3,7 @@ const auth = require('../middleware/auth')
 const { Reply, validateReply } = require('../models/replies')
 const { Post } = require('../models/post')
 const router = express.Router()
-
+const { User } = require('../models/user') // Ensure you require the User model
 // Create a new reply
 router.post('/create/:id', auth, async (req, res) => {
 	try {
@@ -13,11 +13,15 @@ router.post('/create/:id', auth, async (req, res) => {
 
 		const { error } = validateReply(req.body)
 		if (error) return res.status(400).send(error.details[0].message)
-		console.log(user)
+		console.log(req.session.userEmail)
+
+		const user = await User.findOne({ email: req.session.userEmail })
+		if (!user) return res.status(404).send('User not found!')
+
 		const reply = new Reply({
 			post: req.params.id,
 			comment: req.body.comment,
-			author: req.session.userEmail,,
+			author: user._id,
 		})
 		await reply.save()
 

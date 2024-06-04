@@ -2,7 +2,7 @@ const express = require('express')
 const router = express.Router()
 const { Post, validatePost } = require('../models/post')
 const { Tag } = require('../models/tag')
-
+const { User } = require('../models/user') // Ensure you require the User model
 // Get all posts
 router.get('/', async (req, res) => {
 	const posts = await Post.find().sort('name')
@@ -25,7 +25,7 @@ router.get('/:id', async (req, res) => {
 
 // Create a new post
 router.post('/', async (req, res) => {
-	console.log("session email:",req.session)
+	console.log('session email:', req.session)
 	if (!req.session.userEmail) {
 		return res.status(401).send('Access denied. No user logged in.')
 	}
@@ -43,11 +43,14 @@ router.post('/', async (req, res) => {
 			return res.status(400).send('Invalid tags.')
 	}
 
+	const user = await User.findOne({ email: req.session.userEmail })
+	if (!user) return res.status(404).send('User not found!')
+
 	let post = new Post({
 		title: req.body.title,
 		description: req.body.description,
 		tags: req.body.tags || [], // Use empty array if tags are null or undefined
-		author: req.session.userEmail, // Using user ID from session
+		author: user._id, // Using user ID from session
 	})
 
 	try {

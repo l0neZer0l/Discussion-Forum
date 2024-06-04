@@ -14,9 +14,9 @@ const replySchema = new mongoose.Schema({
 		maxlength: 5000,
 	},
 	author: {
-		type: String,
+		type: mongoose.Schema.ObjectId,
 		ref: 'User',
-		required: true,
+		required: false,
 	},
 	upvotes: {
 		type: [mongoose.Schema.Types.ObjectId],
