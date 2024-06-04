@@ -3,7 +3,7 @@ const Joi = require('joi')
 
 const replySchema = new mongoose.Schema({
 	post: {
-		type: mongoose.Schema.ObjectId,
+		type: mongoose.Schema.Types.ObjectId,
 		ref: 'Post',
 		required: true,
 	},
@@ -14,7 +14,7 @@ const replySchema = new mongoose.Schema({
 		maxlength: 5000,
 	},
 	author: {
-		type: mongoose.Schema.ObjectId,
+		type: String,
 		ref: 'User',
 		required: false,
 	},

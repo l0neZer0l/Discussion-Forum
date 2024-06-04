@@ -2,8 +2,9 @@ const express = require('express')
 const auth = require('../middleware/auth')
 const { Reply, validateReply } = require('../models/replies')
 const { Post } = require('../models/post')
+const { User } = require('../models/user')
 const router = express.Router()
-const { User } = require('../models/user') // Ensure you require the User model
+
 // Create a new reply
 router.post('/create/:id', auth, async (req, res) => {
 	try {
@@ -13,7 +14,6 @@ router.post('/create/:id', auth, async (req, res) => {
 
 		const { error } = validateReply(req.body)
 		if (error) return res.status(400).send(error.details[0].message)
-		console.log(req.session.userEmail)
 
 		const user = await User.findOne({ email: req.session.userEmail })
 		if (!user) return res.status(404).send('User not found!')
@@ -57,15 +57,21 @@ router.get('/:id', async (req, res) => {
 // Like or unlike a reply
 router.put('/like/:id', auth, async (req, res) => {
 	try {
+
+
+
 		const reply = await Reply.findById(req.params.id)
 		if (!reply) return res.status(400).send("Reply doesn't exist")
 
-		if (reply.author.equals(req.user._id))
+		const user = await User.findOne({ email: req.session.userEmail })
+		if (!user) return res.status(404).send('User not found!')
+
+		if (reply.author===user.username)
 			return res.status(400).send("You can't upvote your own reply")
 
-		const index = reply.upvotes.indexOf(req.user._id)
+		const index = reply.upvotes.indexOf(user._id)
 		if (index === -1) {
-			reply.upvotes.push(req.user._id)
+			reply.upvotes.push(user._id)
 		} else {
 			reply.upvotes.splice(index, 1)
 		}
