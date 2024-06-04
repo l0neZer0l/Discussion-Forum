@@ -130,6 +130,21 @@ router.get('/email/:email', async (req, res) => {
 	}
 })
 
+
+router.get('/profile/:userEmail',async(req,res)=>{
+	try{
+		const user = await User.findOne({email: req.params.userEmail}).select('-password')
+		if(!user){
+			return res.status(404).send("user not found");
+		}
+		res.send(user);
+	}catch (e){
+		console.error('error ',e)
+		res.status(500).send("server error")
+	}
+})
+
+
 // GET endpoint to get current user profile
 router.get('/me', async (req, res) => {
 	try {

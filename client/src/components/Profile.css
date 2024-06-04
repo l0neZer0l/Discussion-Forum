@@ -1,110 +1,71 @@
-.profile_main_container {
-    width: 70%;
-    margin: auto;
+/* Profile.css */
+
+.profile-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    margin: 0 auto;
+    margin-top: 20px;
 }
 
-.profile_wrapper {
-    width: 100%;
-    display: grid;
-    grid-template-columns: 30% 70%;
-    margin-bottom: 8vh;
+.profile-avatar {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 20px;
 }
 
-.profile_picture {
-    height: 100%;
-    padding: 10vh 3rem;
+.profile-name {
+    font-size: 1.5em;
+    margin-bottom: 10px;
+    color: #333;
 }
 
-.profile_details {
-    height: 100%;
-    padding-top: 10vh;
-    padding-left: 1.5rem;
+.profile-email,
+.profile-username,
+.profile-cin,
+.profile-role,
+.profile-status,
+.profile-is-admin {
+    font-size: 1em;
+    color: #555;
+    margin: 5px 0;
 }
 
-.user_name_edit_wrapper {
-    width: 70%;
-    display: grid;
-    grid-template-columns: 50% 30% 10%;
-    margin-bottom: 4vh;
+.profile-email strong,
+.profile-username strong,
+.profile-cin strong,
+.profile-role strong,
+.profile-status strong,
+.profile-is-admin strong {
+    color: #333;
 }
 
-.user_name {
-    font-size: 1.5rem;
-    width: 100%;
-}
+@media (max-width: 600px) {
+    .profile-container {
+        padding: 15px;
+        max-width: 90%;
+    }
 
-.edit_btn_div {
-    text-align: center;
-}
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+    }
 
-.edit_btn {
-    width: 90%;
-    height: 4vh;
-    font-weight: bold;
-}
+    .profile-name {
+        font-size: 1.2em;
+    }
 
-.setting_btn {
-    padding-left: 0.5rem;
-}
-
-.post_follower_wrapper {
-    display: grid;
-    width: 70%;
-    grid-template-columns: 30% 36% 33%;
-    margin-bottom: 4vh;
-}
-
-.bio_wrapper {
-    width: 70%;
-    margin-bottom: 4vh;
-}
-
-.profile_name {
-    font-weight: bold;
-    margin-bottom: 0.5rem;
-}
-
-.posts_wrapper {
-    width: 70%;
-    margin: auto;
-    display: grid;
-    grid-template-columns: 31.5% 31.5% 31.5%;
-    gap: 1.7rem;
-    margin-top: 8vh;
-}
-
-/* Edit Profile Styles */
-.edit-profile-modal {
-    width: 70%;
-    margin: auto;
-    padding: 2rem;
-    background-color: #fff;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-.edit-profile-form {
-    display: grid;
-    grid-template-columns: 30% 70%;
-    gap: 1.5rem;
-}
-
-.edit-profile-form label {
-    font-weight: bold;
-    margin-bottom: 0.5rem;
-}
-
-.edit-profile-form input,
-.edit-profile-form textarea {
-    width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    margin-bottom: 1rem;
-}
-
-.edit-profile-form button {
-    padding: 0.5rem 1rem;
-    cursor: pointer;
-    margin-right: 0.5rem;
-    width: fit-content;
+    .profile-email,
+    .profile-username,
+    .profile-cin,
+    .profile-role,
+    .profile-status,
+    .profile-is-admin {
+        font-size: 0.9em;
+    }
 }
