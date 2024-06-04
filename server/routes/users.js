@@ -88,7 +88,7 @@ async function sendRegistrationEmail(user, selectedRole) {
 }
 
 // PUT endpoint to update user role (Protected route accessible only by admins)
-router.put('/:email/role', adminMiddleware, async (req, res) => {
+router.put('/:email/role', async (req, res) => {
 	// Use adminMiddleware here
 	const { email } = req.params
 	const { role } = req.body
@@ -136,7 +136,7 @@ router.get('/me', async (req, res) => {
 		// Check if user session exists
 		if (!req.session.userEmail) {
 
-			return res.status(401).send('Unauthorized')
+			return res.status(401).send('Unauthorized ')
 		}
 
 		// Fetch user data using session userEmail
@@ -203,5 +203,72 @@ router.post('/logout', (req, res) => {
 		res.status(500).json({ message: 'Internal server error' })
 	}
 })
+router.get('/all', async (req, res) => {
+	try {
+		const users = await User.find().select('-password')  // Exclude password field
+
+		res.send(users)
+	} catch (error) {
+		console.error('Error fetching user list:', error)
+		res.status(500).send('Internal server error')
+	}
+})
+router.delete('/:userId', async (req, res) => {
+	const { userId } = req.params
+
+	try {
+		if (!ObjectId.isValid(userId)) {
+			return res.status(400).send('Invalid user ID format')
+		}
+
+		const deletedUser = await User.findByIdAndDelete(userId)
+		if (!deletedUser) {
+			return res.status(404).send('User not found')
+		}
+
+		// Handle any post-deletion actions (e.g., removing user data from other collections)
+		// ...
+
+		res.send(deletedUser) // Respond with the deleted user object (optional)
+	} catch (error) {
+		console.error('Error deleting user:', error)
+		res.status(500).send('Internal server error')
+	}
+})
+
+
+
+router.put('/:email', async (req, res) => {
+	const { email } = req.params;
+	const updates = req.body; // Directly assign req.body to updates
+
+	try {
+		// Find the user by email
+		let user = await User.findOne({ email });
+		console.log("user to edit: ", user);
+		console.log("body to edit: ", updates);
+
+		if (!user) {
+			return res.status(404).send('User not found');
+		}
+
+		// Update fields only if they are provided in the request body
+		user.name = updates.name || user.name;
+		user.email = updates.email || user.email;
+		user.username = updates.username || user.username;
+		user.role = updates.role || user.role;
+		user.cinNumber = updates.cinNumber || user.cinNumber;
+
+		await user.save();
+
+		res.send(user); // Respond with the updated user object
+	} catch (error) {
+		console.error('Error updating user:', error);
+		res.status(500).send('Internal server error');
+	}
+});
+
+
+
 
 module.exports = router

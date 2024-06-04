@@ -6,6 +6,7 @@ import "../App.css";
 import Input from "../components/common/input";
 import Form from "./common/form";
 import { login } from "../services/authService";
+import {getCurrentUser} from "../services/authService";
 
 class Log extends Form {
   state = {
@@ -17,12 +18,16 @@ class Log extends Form {
     email: Joi.string().email().required().label("Email"),
     password: Joi.string().required().label("Password"),
   };
-
+  currentUser;
   doSubmit = async () => {
     try {
       const { data } = this.state;
       await login(data.email, data.password); // Login function now handles storing session
+      this.currentUser = await getCurrentUser(data.email)
+      console.log("current user is: ", this.currentUser)
       document.cookie = `userEmail=${data.email}; path=/`; // Set session cookie with user email
+      document.cookie = `userRole=${this.currentUser.role}; path=/`; // Set session cookie with user email
+
       window.location.href = "/dashboard"; // Redirect to dashboard after successful login
     } catch (ex) {
       if (ex.response && ex.response.status === 400) {

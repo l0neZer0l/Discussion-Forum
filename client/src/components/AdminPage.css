@@ -35,6 +35,31 @@
   .user-role-management button:hover {
     background-color: #0056b3;
   }
-  
-  /* Add more styles for other elements in your AdminPage component as needed */
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th, td {
+  padding: 8px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+th {
+  background-color: #f2f2f2;
+}
+.pie-chart-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 30px;
+  padding: 20px;
+}
+
+.recharts-wrapper {
+  display: block;
+}
+
+/* Add more styles for other elements in your AdminPage component as needed */
   
