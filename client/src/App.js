@@ -6,6 +6,7 @@ import NotFound from './components/not-found'
 import NewPost from './components/createpost'
 import Log from './components/log'
 import Logout from './components/logout' // Import Logout component
+import SearchResult from './components/SearchResult'
 import Register from './components/register'
 import NavBar from './components/navbar'
 import ProtectedRoute from './components/common/protectedRoute'
@@ -82,6 +83,7 @@ class App extends Component {
 						render={(props) => <PostPage {...props} user={user} />}
 					/>
 					<ProtectedRoute path='/admin' component={AdminPage} user={user} />
+					<Route path='/search' component={SearchResult} />
 					<Route exact path='/' component={Jumbotron} />
 					<Redirect from='/users' to='/users/login' />
 					<Redirect to='/not-found' />
