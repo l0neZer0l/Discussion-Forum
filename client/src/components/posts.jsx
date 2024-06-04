@@ -26,7 +26,7 @@ const Posts = ({ posts, onDelete }) => {
               onDelete={() => handleDelete(post._id)}
             />
           </div>
-          <small>Created by {post.author ? post.author.name : "Unknown author"}</small>
+          <small>Created by {post.author.username ? post.author.username : "Unknown author"}</small>
           <br />
           <small className="overflow-hidden">{post.description}</small>
           <div className="mt-1">

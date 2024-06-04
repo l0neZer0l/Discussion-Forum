@@ -23,8 +23,8 @@ class PostPage extends Component {
   async componentDidMount() {
     const id = this.props.match.params.id;
     try {
-      const { data: post } = await http.get(api.postsEndPoint + id);
-      const { data: replies } = await http.get(api.repliesEndPoint + id);
+      const { data: post } = await http.get(`${api.postsEndPoint}${id}`);
+      const { data: replies } = await http.get(`${api.repliesEndPoint}${id}`);
       this.setState({ post, replies });
     } catch (error) {
       toast.error('Error fetching post or replies');
@@ -46,8 +46,15 @@ class PostPage extends Component {
 
   handleUpvote = async () => {
     try {
-      const { data: post } = await http.put(api.postsEndPoint + "like/" + this.props.match.params.id, {});
-      this.setState({ post });
+      const postId = this.props.match.params.id;
+      await http.put(`${api.postsEndPoint}like/${postId}`, {});
+      const { data: updatedPost } = await http.get(`${api.postsEndPoint}${postId}`);
+      const { user } = this.props;
+      if (updatedPost.author._id === user._id) {
+        toast.error("You can't upvote your own post!");
+      } else {
+        this.setState({ post: updatedPost });
+      }
     } catch (ex) {
       if (ex.response && ex.response.status === 400) {
         toast.error("You can't upvote your own post!");
@@ -59,9 +66,15 @@ class PostPage extends Component {
 
   handleReplyUpvote = async (id) => {
     try {
-      await http.put(api.repliesEndPoint + "like/" + id, {});
-      const { data: replies } = await http.get(api.repliesEndPoint + this.props.match.params.id);
-      this.setState({ replies });
+      await http.put(`${api.repliesEndPoint}like/${id}`, {});
+      const { data: replies } = await http.get(`${api.repliesEndPoint}${this.props.match.params.id}`);
+      const { user } = this.props;
+      const likedReply = replies.find(reply => reply._id === id);
+      if (likedReply.author._id === user._id) {
+        toast.error("You can't upvote your own reply!");
+      } else {
+        this.setState({ replies });
+      }
     } catch (ex) {
       if (ex.response && ex.response.status === 400) {
         toast.error("You can't upvote your own reply!");
@@ -107,7 +120,7 @@ class PostPage extends Component {
             >
               <div>
                 <PersonCircle size={30} className="mr-2" />
-                Posted by {post.username }
+                Posted by {post.author.username ? post.author.username : "Unknown author"}
               </div>
               <p className="mb-1">
                 <Moment fromNow>{post.time}</Moment>
@@ -124,7 +137,7 @@ class PostPage extends Component {
             <div key={reply._id} className="container col-lg-6 shadow-lg p-3 mt-3 bg-body rounded">
               <div className="ml-4">
                 <PersonCircle size={30} className="mr-3" />
-                Posted by {reply.author.username || "Unknown author"}
+                Posted by {reply.author.username ? reply.author.username : "Unknown author"}
               </div>
               <div className="m-4">{reply.comment}</div>
               <div className="d-flex w-100 justify-content-between mt-3 mb-3">
