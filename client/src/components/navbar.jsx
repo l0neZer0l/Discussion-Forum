@@ -1,7 +1,28 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
+import SearchBar from './SearchBar';
+
 
 const NavBar = ({ user, onLogout }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const handleSearch = () => {
+    if (searchTerm.trim() !== '') {
+      console.log('Searching for:', searchTerm);
+      setSearchTerm('');
+    }
+  };
+
+  const handleChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
   const renderAuthLinks = () => {
     if (!user) {
       return (
@@ -73,6 +94,14 @@ const NavBar = ({ user, onLogout }) => {
               </NavLink>
             </li>
           </ul>
+          <div className="search-bar-container">
+            <SearchBar
+              searchTerm={searchTerm}
+              handleChange={handleChange}
+              handleKeyDown={handleKeyDown}
+              handleSearch={handleSearch}
+            />
+          </div>
           <ul className="navbar-nav ml-auto">{renderAuthLinks()}</ul>
         </div>
       </div>

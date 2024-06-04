@@ -14,6 +14,7 @@ import EditPost from './components/EditPost'
 import AdminPage from './components/AdminPage'
 import { getCurrentUser, logout } from './services/authService'
 import Profile from './components/Profile'
+import SearchResult from './components/SearchResult'
 class App extends Component {
 	state = {
 		user: null,
@@ -82,6 +83,7 @@ class App extends Component {
 						render={(props) => <PostPage {...props} user={user} />}
 					/>
 					<ProtectedRoute path='/admin' component={AdminPage} user={user} />
+					<Route path='/search' component={SearchResult} />
 					<Route exact path='/' component={Jumbotron} />
 					<Redirect from='/users' to='/users/login' />
 					<Redirect to='/not-found' />

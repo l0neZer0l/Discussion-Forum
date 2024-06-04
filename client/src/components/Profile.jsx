@@ -8,16 +8,18 @@ function Profile({ match, user: currentUser }) {
     const [user, setUser] = useState(null);
     const [isFollowing, setIsFollowing] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
+    const [error, setError] = useState("");
 
     useEffect(() => {
         async function fetchUserProfile() {
             try {
                 if (!currentUser || !currentUser.email) {
+                    setError("User not found.");
                     return;
                 }
                 
-                const userId = match.params.userId || currentUser._id;
-                const { data } = await getUserProfile(userId);
+                const email = match.params.email || currentUser.email;
+                const { data } = await getUserProfile(email);
                 setUser(data);
 
                 if (currentUser && data.followers.includes(currentUser._id)) {
@@ -25,21 +27,40 @@ function Profile({ match, user: currentUser }) {
                 }
             } catch (error) {
                 console.error('Error fetching user profile:', error);
+                setError('Error fetching user profile.');
             }
         }
         fetchUserProfile();
-    }, [match.params.userId, currentUser]);
+    }, [match.params.email, currentUser]);
 
     const handleFollow = async () => {
-        // Function to follow user
+        try {
+            await followUser(user.email);
+            setIsFollowing(true);
+            setUser((prevUser) => ({
+                ...prevUser,
+                followers: [...prevUser.followers, currentUser._id],
+            }));
+        } catch (error) {
+            console.error('Error following user:', error);
+        }
     };
 
     const handleUnfollow = async () => {
-        // Function to unfollow user
+        try {
+            await unfollowUser(user.email);
+            setIsFollowing(false);
+            setUser((prevUser) => ({
+                ...prevUser,
+                followers: prevUser.followers.filter((id) => id !== currentUser._id),
+            }));
+        } catch (error) {
+            console.error('Error unfollowing user:', error);
+        }
     };
 
-    if (!currentUser || !currentUser.email) {
-        return <div>User not found.</div>;
+    if (error) {
+        return <div>{error}</div>;
     }
 
     if (!user) {
