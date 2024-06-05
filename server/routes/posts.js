@@ -131,10 +131,10 @@ router.put('/like/:id', auth, async (req, res) => {
 		}
 
 		// Check if the user has already upvoted the post
-		const index = post.upvotes.indexOf(user.username)
+		const index = post.upvotes.indexOf(user._id)
 		if (index === -1) {
 			// If the user hasn't upvoted, add their ID to the upvotes array
-			post.upvotes.push(user.username)
+			post.upvotes.push(user._id)
 		} else {
 			// If the user has already upvoted, remove their ID from the upvotes array
 			post.upvotes.splice(index, 1)

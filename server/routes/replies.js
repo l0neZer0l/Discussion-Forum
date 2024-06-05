@@ -21,7 +21,7 @@ router.post('/create/:id', auth, async (req, res) => {
 		const reply = new Reply({
 			post: req.params.id,
 			comment: req.body.comment,
-			author: user.username,
+			author: user._id,
 		})
 		await reply.save()
 
@@ -66,9 +66,9 @@ router.put('/like/:id', auth, async (req, res) => {
 		if (reply.author === user.username)
 			return res.status(400).send("You can't upvote your own reply")
 
-		const index = reply.upvotes.indexOf(user.username)
+		const index = reply.upvotes.indexOf(user._id)
 		if (index === -1) {
-			reply.upvotes.push(user.username)
+			reply.upvotes.push(user._id)
 		} else {
 			reply.upvotes.splice(index, 1)
 		}
