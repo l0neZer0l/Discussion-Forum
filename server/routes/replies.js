@@ -21,7 +21,7 @@ router.post('/create/:id', auth, async (req, res) => {
 		const reply = new Reply({
 			post: req.params.id,
 			comment: req.body.comment,
-			author: user._id,
+			author: user.username,
 		})
 		await reply.save()
 
@@ -57,21 +57,18 @@ router.get('/:id', async (req, res) => {
 // Like or unlike a reply
 router.put('/like/:id', auth, async (req, res) => {
 	try {
-
-
-
 		const reply = await Reply.findById(req.params.id)
 		if (!reply) return res.status(400).send("Reply doesn't exist")
 
 		const user = await User.findOne({ email: req.session.userEmail })
 		if (!user) return res.status(404).send('User not found!')
 
-		if (reply.author===user.username)
+		if (reply.author === user.username)
 			return res.status(400).send("You can't upvote your own reply")
 
-		const index = reply.upvotes.indexOf(user._id)
+		const index = reply.upvotes.indexOf(user.username)
 		if (index === -1) {
-			reply.upvotes.push(user._id)
+			reply.upvotes.push(user.username)
 		} else {
 			reply.upvotes.splice(index, 1)
 		}

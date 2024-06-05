@@ -9,7 +9,7 @@ const users = require('./routes/users')
 const posts = require('./routes/posts')
 const tags = require('./routes/tags')
 const replies = require('./routes/replies')
-
+const searchRoutes = require('./routes/search')
 // MongoDB URL
 const mongoDBURL = process.env.mongoDBURL || 'mongodb://localhost:27017/reforum'
 
@@ -69,7 +69,7 @@ const requireLogin = (req, res, next) => {
 app.get('/', (req, res) => {
 	res.send('Request successfully sent!')
 })
-
+app.use('/search', searchRoutes)
 app.use('/users', users)
 app.use('/posts', requireLogin, posts) // Protect posts route, require login
 app.use('/tags', requireLogin, tags) // Protect tags route, require login

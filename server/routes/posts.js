@@ -126,15 +126,15 @@ router.put('/like/:id', auth, async (req, res) => {
 		if (!user) return res.status(404).send('User not found!')
 
 		// Check if the user is the author of the post
-		if (post.author===user.username) {
+		if (post.author === user.username) {
 			return res.status(400).send("You can't upvote your own post")
 		}
 
 		// Check if the user has already upvoted the post
-		const index = post.upvotes.indexOf(user._id)
+		const index = post.upvotes.indexOf(user.username)
 		if (index === -1) {
 			// If the user hasn't upvoted, add their ID to the upvotes array
-			post.upvotes.push(user._id)
+			post.upvotes.push(user.username)
 		} else {
 			// If the user has already upvoted, remove their ID from the upvotes array
 			post.upvotes.splice(index, 1)
