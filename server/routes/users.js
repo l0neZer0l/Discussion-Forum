@@ -130,27 +130,26 @@ router.get('/email/:email', async (req, res) => {
 	}
 })
 
-
-router.get('/profile/:userEmail',async(req,res)=>{
-	try{
-		const user = await User.findOne({email: req.params.userEmail}).select('-password')
-		if(!user){
-			return res.status(404).send("user not found");
+router.get('/profile/:userEmail', async (req, res) => {
+	try {
+		const user = await User.findOne({ email: req.params.userEmail }).select(
+			'-password',
+		)
+		if (!user) {
+			return res.status(404).send('user not found')
 		}
-		res.send(user);
-	}catch (e){
-		console.error('error ',e)
-		res.status(500).send("server error")
+		res.send(user)
+	} catch (e) {
+		console.error('error ', e)
+		res.status(500).send('server error')
 	}
 })
-
 
 // GET endpoint to get current user profile
 router.get('/me', async (req, res) => {
 	try {
 		// Check if user session exists
 		if (!req.session.userEmail) {
-
 			return res.status(401).send('Unauthorized ')
 		}
 
@@ -220,7 +219,7 @@ router.post('/logout', (req, res) => {
 })
 router.get('/all', async (req, res) => {
 	try {
-		const users = await User.find().select('-password')  // Exclude password field
+		const users = await User.find().select('-password') // Exclude password field
 
 		res.send(users)
 	} catch (error) {
@@ -251,39 +250,64 @@ router.delete('/:userId', async (req, res) => {
 	}
 })
 
-
-
 router.put('/:email', async (req, res) => {
-	const { email } = req.params;
-	const updates = req.body; // Directly assign req.body to updates
+	const { email } = req.params
+	const updates = req.body // Directly assign req.body to updates
 
 	try {
 		// Find the user by email
-		let user = await User.findOne({ email });
-		console.log("user to edit: ", user);
-		console.log("body to edit: ", updates);
+		let user = await User.findOne({ email })
+		console.log('user to edit: ', user)
+		console.log('body to edit: ', updates)
 
 		if (!user) {
-			return res.status(404).send('User not found');
+			return res.status(404).send('User not found')
 		}
 
 		// Update fields only if they are provided in the request body
-		user.name = updates.name || user.name;
-		user.email = updates.email || user.email;
-		user.username = updates.username || user.username;
-		user.role = updates.role || user.role;
-		user.cinNumber = updates.cinNumber || user.cinNumber;
+		user.name = updates.name || user.name
+		user.email = updates.email || user.email
+		user.username = updates.username || user.username
+		user.role = updates.role || user.role
+		user.cinNumber = updates.cinNumber || user.cinNumber
 
-		await user.save();
+		await user.save()
 
-		res.send(user); // Respond with the updated user object
+		res.send(user) // Respond with the updated user object
 	} catch (error) {
-		console.error('Error updating user:', error);
-		res.status(500).send('Internal server error');
+		console.error('Error updating user:', error)
+		res.status(500).send('Internal server error')
 	}
-});
+})
 
+// PUT endpoint to update user profile
+router.put('/:email', async (req, res) => {
+	const { email } = req.params
+	const updates = req.body
 
+	try {
+		// Find the user by email
+		let user = await User.findOne({ email })
+		if (!user) {
+			return res.status(404).send('User not found')
+		}
 
+		// Update fields only if they are provided in the request body
+		if (updates.profile_picture) user.profile_picture = updates.profile_picture
+		if (updates.bio) user.bio = updates.bio
+		if (updates.linkedin) user.linkedin = updates.linkedin
+		if (updates.github) user.github = updates.github
+		if (updates.twitter) user.twitter = updates.twitter
+		if (updates.instagram) user.instagram = updates.instagram
+		if (updates.facebook) user.facebook = updates.facebook
+
+		await user.save()
+
+		res.send(user) // Respond with the updated user object
+	} catch (error) {
+		console.error('Error updating user:', error)
+		res.status(500).send('Internal server error')
+	}
+})
 
 module.exports = router

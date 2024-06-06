@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
 import { updateUserProfile } from '../services/userService';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faGithub, faTwitter, faInstagram, faFacebook, faLinkedin } from '@fortawesome/free-brands-svg-icons';
 import './Profile.css';
 
 function EditProfile({ user, onClose }) {
     const [formData, setFormData] = useState({
-        username: user.username,
-        full_name: user.full_name,
+        profile_picture: user.profile_picture,
         bio: user.bio,
-        profile_picture: user.profile_picture
+        linkedin: user.linkedin,
+        github: user.github,
+        twitter: user.twitter,
+        instagram: user.instagram,
+        facebook: user.facebook,
     });
 
     const handleChange = ({ target }) => {
@@ -20,7 +25,7 @@ function EditProfile({ user, onClose }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await updateUserProfile(formData);
+            await updateUserProfile(user.email, formData);
             onClose();
         } catch (error) {
             console.error('Error updating profile:', error);
@@ -31,20 +36,11 @@ function EditProfile({ user, onClose }) {
         <div className="edit-profile-modal">
             <form className="edit-profile-form" onSubmit={handleSubmit}>
                 <div>
-                    <label>Username</label>
+                    <label>Profile Picture</label>
                     <input
                         type="text"
-                        name="username"
-                        value={formData.username}
-                        onChange={handleChange}
-                    />
-                </div>
-                <div>
-                    <label>Full Name</label>
-                    <input
-                        type="text"
-                        name="full_name"
-                        value={formData.full_name}
+                        name="profile_picture"
+                        value={formData.profile_picture}
                         onChange={handleChange}
                     />
                 </div>
@@ -57,11 +53,47 @@ function EditProfile({ user, onClose }) {
                     ></textarea>
                 </div>
                 <div>
-                    <label>Profile Picture</label>
+                    <label>LinkedIn</label>
                     <input
                         type="text"
-                        name="profile_picture"
-                        value={formData.profile_picture}
+                        name="linkedin"
+                        value={formData.linkedin}
+                        onChange={handleChange}
+                    />
+                </div>
+                <div>
+                    <label>Github</label>
+                    <input
+                        type="text"
+                        name="github"
+                        value={formData.github}
+                        onChange={handleChange}
+                    />
+                </div>
+                <div>
+                    <label>Twitter</label>
+                    <input
+                        type="text"
+                        name="twitter"
+                        value={formData.twitter}
+                        onChange={handleChange}
+                    />
+                </div>
+                <div>
+                    <label>Instagram</label>
+                    <input
+                        type="text"
+                        name="instagram"
+                        value={formData.instagram}
+                        onChange={handleChange}
+                    />
+                </div>
+                <div>
+                    <label>Facebook</label>
+                    <input
+                        type="text"
+                        name="facebook"
+                        value={formData.facebook}
                         onChange={handleChange}
                     />
                 </div>
